@@ -60,7 +60,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
-          <img src="/public/logo.png" alt="Maha Logo" className="mx-auto h-12 w-12" />
+          {/* <img src="/public/logo.png" alt="Maha Logo" className="mx-auto h-12 w-12" /> */}
           <CardTitle className="text-2xl font-bold text-gray-900">
             Maharashtra State
           </CardTitle>

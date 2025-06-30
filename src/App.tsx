@@ -8,7 +8,10 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/auth/LoginForm';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/components/dashboard/Dashboard';
-import FundAllocation from '@/components/sna/FundAllocation';
+import FundAllocation from '@/components/dna/FundAllocation';
+import FundAllocationSna from '@/components/sna/FundAllocation';
+
+
 import UserManagement from '@/components/sna/UserManagement';
 import DepartmentManagement from '@/components/sna/DepartmentManagement';
 import FundApproval from '@/components/dna/FundApproval';
@@ -69,6 +72,11 @@ const AuthenticatedApp = () => {
       <Route path="/fund-allocation" element={
         <PrivateRoute>
           <FundAllocation />
+        </PrivateRoute>
+      } />
+       <Route path="/fund-allocation-sna" element={
+        <PrivateRoute>
+          <FundAllocationSna />
         </PrivateRoute>
       } />
       <Route path="/user-management" element={

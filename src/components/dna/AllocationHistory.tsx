@@ -39,6 +39,7 @@ const AllocationHistory: React.FC<AllocationHistoryProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Scheme Name</TableHead>
               <TableHead>District</TableHead>
               <TableHead className="text-right">Amount (₹)</TableHead>
               <TableHead>Allocation Date</TableHead>
@@ -51,6 +52,7 @@ const AllocationHistory: React.FC<AllocationHistoryProps> = ({
           <TableBody>
             {allocations.map(allocation => (
               <TableRow key={allocation.id}>
+                <TableCell>{allocation.schemeName}</TableCell>
                 <TableCell>{allocation.district}</TableCell>
                 <TableCell className="text-right">
                   ₹{formatCurrency(allocation.amount)}

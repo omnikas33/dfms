@@ -1,148 +1,109 @@
+
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus } from 'lucide-react';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import FundAllocationForm from './FundAllocationForm';
 import AllocationSummary from './AllocationSummary';
 import AllocationHistory, { AllocationRecordType } from './AllocationHistory';
 
-interface Scheme {
-  id: string;
-  name: string;
-  code: string;
-  description: string;
-}
-
-interface FundAllocationProps {
-  initialSchemes?: Scheme[];
-  initialAllocations?: AllocationRecordType[];
-}
-
-const districts = [
-  'Mumbai City',
-  'Pune',
-  'Nagpur',
-  'Thane',
-  'Nashik',
-  'Aurangabad'
-];
-
-const FundAllocation: React.FC<FundAllocationProps> = ({
-  initialSchemes = [],
-  initialAllocations = []
-}) => {
+const FundAllocation = () => {
   const { toast } = useToast();
-
-  // 1️⃣ Change here: now have both schemes and setSchemes  
-  const [schemes, setSchemes] = useState<Scheme[]>(initialSchemes);
-  const [allocations, setAllocations] = useState<AllocationRecordType[]>(initialAllocations);
-
-  const [allocForm, setAllocForm] = useState({
-    schemeId: '',
+  const [formData, setFormData] = useState({
     district: '',
     amount: '',
     allocationDate: new Date().toISOString().split('T')[0],
-    utilizationEndDate: new Date().toISOString().split('T')[0],
     remarks: ''
   });
-  const [schemeForm, setSchemeForm] = useState({
-    name: '',
-    code: '',
-    description: ''
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [allocations, setAllocations] = useState<AllocationRecordType[]>([
+    {
+      id: '1',
+      district: 'Mumbai City',
+      amount: '5000000',
+      allocationDate: '2024-06-15',
+      remarks: 'Initial allocation for Q2 projects',
+      status: 'Active'
+    },
+    {
+      id: '2',
+      district: 'Pune',
+      amount: '3500000',
+      allocationDate: '2024-06-10',
+      remarks: 'Infrastructure development',
+      status: 'Utilized'
+    },
+    {
+      id: '3',
+      district: 'Nagpur',
+      amount: '2750000',
+      allocationDate: '2024-06-08',
+      remarks: 'Rural development projects',
+      status: 'Active'
+    }
+  ]);
 
-  const [isAllocSubmitting, setIsAllocSubmitting] = useState(false);
-  const [isSchemeSubmitting, setIsSchemeSubmitting] = useState(false);
-  const [isAllocDialogOpen, setIsAllocDialogOpen] = useState(false);
-  const [isSchemeDialogOpen, setIsSchemeDialogOpen] = useState(false);
-
-  const handleAllocChange = (field: string, value: string) => {
-    setAllocForm(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
-  const handleSchemeChange = (field: string, value: string) => {
-    setSchemeForm(prev => ({ ...prev, [field]: value }));
-  };
 
-  const formatCurrency = (amt: string) => {
-    const num = parseFloat(amt);
-    return isNaN(num) ? amt : num.toLocaleString('en-IN');
-  };
-
-  const handleAllocSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsAllocSubmitting(true);
-    const { schemeId, district, amount, allocationDate, utilizationEndDate, remarks } = allocForm;
-    const scheme = schemes.find(s => s.id === schemeId);
-    const newAlloc: AllocationRecordType = {
+    setIsSubmitting(true);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Add new allocation to the list
+    const newAllocation: AllocationRecordType = {
       id: Date.now().toString(),
-      schemeName: scheme?.name || '',
-      district,
-      amount,
-      allocationDate,
-      utilizationEndDate,
-      remarks,
+      district: formData.district,
+      amount: formData.amount,
+      allocationDate: formData.allocationDate,
+      remarks: formData.remarks,
       status: 'Active'
     };
-    setTimeout(() => {
-      setAllocations(prev => [newAlloc, ...prev]);
-      toast({
-        title: 'Allocation Successful',
-        description: `₹${formatCurrency(amount)} allocated to ${district} under scheme ${scheme?.name}.`
-      });
-      setAllocForm({
-        schemeId: '',
-        district: '',
-        amount: '',
-        allocationDate: new Date().toISOString().split('T')[0],
-        utilizationEndDate: new Date().toISOString().split('T')[0],
-        remarks: ''
-      });
-      setIsAllocSubmitting(false);
-      setIsAllocDialogOpen(false);
-    }, 500);
+
+    setAllocations(prev => [newAllocation, ...prev]);
+
+    toast({
+      title: "Fund Allocation Successful",
+      description: `₹${formatCurrency(formData.amount)} allocated to ${formData.district} district.`,
+    });
+
+    // Reset form and close dialog
+    setFormData({
+      district: '',
+      amount: '',
+      allocationDate: new Date().toISOString().split('T')[0],
+      remarks: ''
+    });
+    setIsDialogOpen(false);
+    setIsSubmitting(false);
   };
 
-  const handleSchemeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSchemeSubmitting(true);
-
-    // build the new scheme object
-    const newScheme: Scheme = {
-      id: Date.now().toString(),
-      name: schemeForm.name,
-      code: schemeForm.code,
-      description: schemeForm.description
-    };
-
-    setTimeout(() => {
-      // 2️⃣ Push it into state so it appears in your allocation dropdown
-      setSchemes(prev => [...prev, newScheme]);
-
+  const handleDelete = (id: string) => {
+    const allocation = allocations.find(a => a.id === id);
+    if (allocation) {
+      setAllocations(prev => prev.filter(a => a.id !== id));
       toast({
-        title: 'Scheme Added',
-        description: `Scheme "${newScheme.name}" has been created.`
+        title: "Allocation Deleted",
+        description: `Fund allocation to ${allocation.district} has been removed.`,
+        variant: "destructive"
       });
-
-      // reset form + close
-      setSchemeForm({ name: '', code: '', description: '' });
-      setIsSchemeSubmitting(false);
-      setIsSchemeDialogOpen(false);
-    }, 500);
+    }
   };
 
-  const handleDeleteAlloc = (id: string) => {
-    setAllocations(prev => prev.filter(a => a.id !== id));
-    toast({ title: 'Allocation Deleted', variant: 'destructive' });
+  const formatCurrency = (amount: string) => {
+    if (!amount) return '';
+    const numericAmount = parseFloat(amount.replace(/,/g, ''));
+    if (isNaN(numericAmount)) return amount;
+    return numericAmount.toLocaleString('en-IN');
   };
 
   return (
@@ -150,119 +111,41 @@ const FundAllocation: React.FC<FundAllocationProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Fund Allocation</h1>
-          <p className="text-gray-600">Allocate funds to districts or manage schemes</p>
+          <p className="text-gray-600">Allocate funds to district authorities</p>
         </div>
-        <div className="flex gap-2">
-          {/* Add Scheme Dialog */}
-          <Dialog open={isSchemeDialogOpen} onOpenChange={setIsSchemeDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Plus className="h-4 w-4 mr-1" />
-                Add Scheme
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Scheme Master</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSchemeSubmit} className="space-y-4 p-4">
-                <div>
-                  <Label htmlFor="scheme_name">Name</Label>
-                  <Input id="scheme_name" value={schemeForm.name} onChange={e => handleSchemeChange('name', e.target.value)} required />
-                </div>
-                <div>
-                  <Label htmlFor="scheme_code">Code</Label>
-                  <Input id="scheme_code" value={schemeForm.code} onChange={e => handleSchemeChange('code', e.target.value)} required />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" value={schemeForm.description} onChange={e => handleSchemeChange('description', e.target.value)} />
-                </div>
-                <Button type="submit" disabled={isSchemeSubmitting} className="w-full">
-                  {isSchemeSubmitting ? 'Adding...' : 'Add Scheme'}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          {/* New Allocation Dialog */}
-          <Dialog open={isAllocDialogOpen} onOpenChange={setIsAllocDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-[#193A9A] hover:bg-[#142f7c] text-white">
-                <Plus className="h-4 w-4 mr-1" />
-                New Allocation
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>New Fund Allocation</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAllocSubmit} className="space-y-4 p-4">
-                <div>
-                  <Label htmlFor="scheme_select">Scheme</Label>
-                  <Select id="scheme_select" value={allocForm.schemeId} onValueChange={val => handleAllocChange('schemeId', val)}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select scheme" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {schemes.map(s => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="district_select">District</Label>
-                  <Select id="district_select" value={allocForm.district} onValueChange={val => handleAllocChange('district', val)}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select district" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {districts.map(d => (
-                        <SelectItem key={d} value={d}>
-                          {d}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="amount">Amount (₹)</Label>
-                  <Input id="amount" type="number" value={allocForm.amount} onChange={e => handleAllocChange('amount', e.target.value)} required />
-                </div>
-                <div>
-                  <Label htmlFor="utilizationEndDate">Utilization End Date</Label>
-                  <Input
-                    id="utilizationEndDate"
-                    type="date"
-                    value={allocForm.utilizationEndDate}
-                    onChange={e => handleAllocChange('utilizationEndDate', e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="remarks">Remarks</Label>
-                  <Input id="remarks" value={allocForm.remarks} onChange={e => handleAllocChange('remarks', e.target.value)} />
-                </div>
-                <Button type="submit" disabled={isAllocSubmitting} className="w-full">
-                  {isAllocSubmitting ? 'Allocating...' : 'Allocate'}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-[#193A9A] hover:bg-[#142f7c] text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              New Fund Allocation
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>New Fund Allocation</DialogTitle>
+            </DialogHeader>
+            <FundAllocationForm
+              formData={formData}
+              isSubmitting={isSubmitting}
+              onInputChange={handleInputChange}
+              onSubmit={handleSubmit}
+              formatCurrency={formatCurrency}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Summary */}
         <div className="lg:col-span-1">
           <AllocationSummary />
         </div>
+        
+        {/* Fund Allocation History */}
         <div className="lg:col-span-2">
           <AllocationHistory
             allocations={allocations}
-            onDelete={handleDeleteAlloc}
+            onDelete={handleDelete}
             formatCurrency={formatCurrency}
           />
         </div>

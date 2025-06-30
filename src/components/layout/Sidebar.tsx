@@ -30,26 +30,28 @@ const Sidebar: React.FC = () => {
       case 'SNA':
         return [
           ...baseItems,
-          { path: '/fund-allocation',       icon: IndianRupee,    label: 'Fund Allocation'    },
+          { path: '/fund-allocation-sna',       icon: IndianRupee,    label: 'Fund Allocation'    },
           { path: '/user-management',       icon: Users,          label: 'User Management'    },
           { path: '/department-management', icon: Building2,      label: 'District Management'},
           { path: '/tax-master',      icon: FileText,        label: 'Tax Master'  },
           { path: '/reports',               icon: BarChart3,      label: 'Reports'            },
-          { path: '/settings',              icon: Settings,       label: 'Settings'           }
+          // { path: '/settings',              icon: Settings,       label: 'Settings'           }
         ];
       case 'DNA':
         return [
           ...baseItems,
           { path: '/fund-approval',          icon: CheckCircle,  label: 'Fund Approval'      },
-          { path: '/return-funds',           icon: ArrowLeftRight,label: 'Return Funds'       },
+          { path: '/fund-allocation',       icon: IndianRupee,    label: 'Fund Allocation'    },
+          // { path: '/return-funds',           icon: ArrowLeftRight,label: 'Return Funds'       },
           { path: '/tax-master',      icon: FileText,        label: 'Tax Master'  },
-          { path: '/vendor-verification',    icon: UserCheck,    label: 'Vendor Verification' },
+          // { path: '/vendor-verification',    icon: UserCheck,    label: 'Vendor Verification' },
           { path: '/reports',                icon: BarChart3,    label: 'Reports'            }
         ];
       case 'IDA':
         return [
           ...baseItems,
           { path: '/project-approval',       icon: FileText,     label: 'Project Approval'   },
+          { path: '/fund-allocation',       icon: IndianRupee,    label: 'Fund Allocation'    },
           { path: '/fund-enhancement',       icon: TrendingUp,   label: 'Fund Enhancement'   },
           { path: '/tax-master',      icon: FileText,        label: 'Tax Master'  },
           { path: '/fund-return',            icon: ArrowLeftRight,label: 'Fund Return'        },
