@@ -3,16 +3,20 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // ensure assets are loaded relative to index.html
+  base: "./",
+
   server: {
     host: "::",
     port: 8080,
   },
+
   plugins: [
     react(),
-    mode === 'development' && componentTagger(),
+    mode === "development" && componentTagger(),
   ].filter(Boolean),
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -20,21 +24,21 @@ export default defineConfig(({ mode }) => ({
   },
 
   build: {
-    // only warn if >700 kB after minification
+    // only warn if a chunk exceeds 700 kB
     chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            // Separate react + react-dom
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'vendor-react';
+          if (id.includes("node_modules")) {
+            // split React / React-DOM into their own vendor chunk
+            if (id.includes("react") || id.includes("react-dom")) {
+              return "vendor-react";
             }
-            // Everything else from node_modules
-            return 'vendor';
+            // all other third-party deps in a generic vendor chunk
+            return "vendor";
           }
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 }));
