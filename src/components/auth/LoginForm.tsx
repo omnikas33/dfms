@@ -1,168 +1,150 @@
+import React, { useState } from "react";
+import { Eye, EyeOff, User2, Lock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext"; // <-- make sure this path is correct
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, Eye, EyeOff, RefreshCw } from 'lucide-react';
+const DUMMY_USERS = [
+  {
+    username: "stateadmin",
+    password: "123",
+    role: "STATE_ADMIN",
+    name: "Rohit Sharma",
+    department: "Planning & Finance",
+    district: "",
+    state_id: 1,
+  },
+  {
+    username: "districtadmin",
+    password: "123",
+    role: "DISTRICT_ADMIN",
+    name: "Anita Patil",
+    department: "Zilla Parishad",
+    district: "Pune",
+    district_id: 10,
+    state_id: 1,
+  },
+  {
+    username: "iaadmin",
+    password: "123",
+    role: "IA_ADMIN",
+    name: "Sachin More",
+    department: "Rural Works Division",
+    district: "Pune",
+    ia_id: 1001,
+    district_id: 10,
+    state_id: 1,
+  },
+];
 
 interface LoginFormProps {
   onSuccess: () => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    captcha: ''
-  });
+  const { login } = useAuth(); // <-- use your context here!
+  const [formData, setFormData] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [captchaCode, setCaptchaCode] = useState('ABCD123');
-  const [error, setError] = useState('');
-  const { login, isLoading } = useAuth();
+  const [error, setError] = useState("");
 
-  const generateCaptcha = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setCaptchaCode(result);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    if (formData.captcha.toUpperCase() !== captchaCode) {
-      setError('Invalid captcha code');
-      return;
-    }
-
-    const success = await login(formData);
-    if (success) {
+    setError("");
+    const user = DUMMY_USERS.find(
+      (u) =>
+        u.username === formData.username.trim() &&
+        u.password === formData.password
+    );
+    if (user) {
+      login(user);       // <-- This updates your context
       onSuccess();
     } else {
-      setError('Invalid credentials');
+      setError("Invalid username or password.");
     }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center">
-          {/* <img src="/public/logo.png" alt="Maha Logo" className="mx-auto h-12 w-12" /> */}
-          <CardTitle className="text-2xl font-bold text-gray-900">
-            Maharashtra State
-          </CardTitle>
-          <CardDescription className="text-gray-600">
-            Fund Management System Login
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                value={formData.username}
-                onChange={handleInputChange}
-                className="border-gray-300 focus:border-primary"
-                placeholder="Enter your username"
-                required
-              />
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fade-in"
+        autoComplete="off"
+      >
+        <div className="mb-8 text-center">
+          <div className="mx-auto w-14 h-14 flex items-center justify-center bg-primary rounded-full shadow">
+            <span className="font-bold text-2xl text-white">FMS</span>
+          </div>
+          <h2 className="mt-4 text-2xl font-extrabold text-gray-800">
+            Welcome Back
+          </h2>
+          <p className="text-gray-500 text-sm mt-1">
+            Please sign in to your account
+          </p>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="border-gray-300 focus:border-primary pr-10"
-                  placeholder="Enter your password"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
+        {error && (
+          <div className="mb-4 text-red-600 bg-red-50 border border-red-200 rounded p-2 text-sm text-center font-medium">
+            {error}
+          </div>
+        )}
 
-            <div className="space-y-2">
-              <Label htmlFor="captcha">Captcha</Label>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Input
-                    id="captcha"
-                    name="captcha"
-                    type="text"
-                    value={formData.captcha}
-                    onChange={handleInputChange}
-                    className="border-gray-300 focus:border-primary"
-                    placeholder="Enter captcha"
-                    required
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="bg-gray-100 px-3 py-2 rounded-md font-mono text-lg font-bold text-primary border-2 border-dashed border-gray-300">
-                    {captchaCode}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={generateCaptcha}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
+        <div className="mb-5 relative">
+          <label className="block mb-1 font-semibold text-gray-700">
+            Username
+          </label>
+          <div className="flex items-center bg-gray-50 rounded px-3 border focus-within:ring-2 focus-within:ring-primary">
+            <User2 className="text-gray-400 mr-2" size={18} />
+            <input
+              type="text"
+              className="bg-transparent flex-1 py-2 outline-none"
+              placeholder="Enter your username"
+              value={formData.username}
+              onChange={(e) =>
+                setFormData({ ...formData, username: e.target.value })
+              }
+              autoFocus
+              required
+            />
+          </div>
+        </div>
 
-            {error && (
-              <Alert className="bg-red-100 text-red-800 border-red-200">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary-hover text-white"
-              disabled={isLoading}
+        <div className="mb-7 relative">
+          <label className="block mb-1 font-semibold text-gray-700">
+            Password
+          </label>
+          <div className="flex items-center bg-gray-50 rounded px-3 border focus-within:ring-2 focus-within:ring-primary">
+            <Lock className="text-gray-400 mr-2" size={18} />
+            <input
+              type={showPassword ? "text" : "password"}
+              className="bg-transparent flex-1 py-2 outline-none"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              required
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowPassword((v) => !v)}
+              className="text-gray-400 hover:text-primary transition ml-1"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Logging in...
-                </>
-              ) : (
-                'Login'
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          className="w-full py-2 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold text-lg shadow-md transition"
+        >
+          Login
+        </button>
+
+        <div className="mt-6 text-center text-xs text-gray-400">
+          &copy; {new Date().getFullYear()} FMS. All rights reserved.
+        </div>
+      </form>
     </div>
   );
 };

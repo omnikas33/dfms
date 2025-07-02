@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,8 @@ import { Plus } from 'lucide-react';
 import FundAllocationForm from './FundAllocationForm';
 import AllocationSummary from './AllocationSummary';
 import AllocationHistory, { AllocationRecordType } from './AllocationHistory';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '@/components/ui/table';
 
 const FundAllocation = () => {
   const { toast } = useToast();
@@ -44,6 +45,42 @@ const FundAllocation = () => {
       status: 'Active'
     }
   ]);
+
+  // --- MLA Funds Data (local, as per request) ---
+  const mlaFundsData = [
+    {
+      id: 1,
+      mlaName: "Shri Ajay Deshmukh",
+      constituency: "Pune Central",
+      allocated: 50000000,      // 5 cr
+      utilized: 37500000,       // 3.75 cr
+      works: 23,
+    },
+    {
+      id: 2,
+      mlaName: "Smt. Sneha Jadhav",
+      constituency: "Aurangabad South",
+      allocated: 50000000,
+      utilized: 41500000,
+      works: 27,
+    },
+    {
+      id: 3,
+      mlaName: "Shri Vinod Patil",
+      constituency: "Nagpur North",
+      allocated: 50000000,
+      utilized: 32850000,
+      works: 19,
+    },
+  ];
+
+  const formatCurrency = (amount: string | number) => {
+    const numericAmount = typeof amount === 'string'
+      ? parseFloat(amount.replace(/,/g, ''))
+      : amount;
+    if (isNaN(numericAmount)) return amount.toString();
+    return numericAmount.toLocaleString('en-IN');
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -99,13 +136,6 @@ const FundAllocation = () => {
     }
   };
 
-  const formatCurrency = (amount: string) => {
-    if (!amount) return '';
-    const numericAmount = parseFloat(amount.replace(/,/g, ''));
-    if (isNaN(numericAmount)) return amount;
-    return numericAmount.toLocaleString('en-IN');
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -150,6 +180,79 @@ const FundAllocation = () => {
           />
         </div>
       </div>
+
+      {/* MLA Funds Table (inline, not a separate component) */}
+      {/* MLA Funds Table (with improved UI) */}
+<Card className="shadow border-2 border-blue-200 bg-gradient-to-br from-blue-50 via-white to-blue-100 mt-2">
+  <CardHeader className="py-3 px-4 flex flex-col gap-1">
+    <CardTitle className="text-base flex items-center gap-2">
+      <span className="bg-blue-600 text-white px-2 py-1 text-xs rounded">MLA</span>
+      Maharashtra MLA Funds Mapping
+    </CardTitle>
+    <span className="text-xs text-gray-500 ml-7">Status of MLA fund allocation, utilization and works</span>
+  </CardHeader>
+  <CardContent className="p-0">
+    <div className="w-full">
+      <Table className="min-w-max text-xs">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="px-2 py-2">MLA</TableHead>
+            <TableHead className="px-2 py-2">Constituency</TableHead>
+            <TableHead className="px-2 py-2 text-right">Allocated Fund (₹)</TableHead>
+            <TableHead className="px-2 py-2 text-right">Utilized (₹)</TableHead>
+            <TableHead className="px-2 py-2 text-right">Remaining (₹)</TableHead>
+            <TableHead className="px-2 py-2 text-center">Works</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {mlaFundsData.map((mla) => {
+            const remain = mla.allocated - mla.utilized;
+            const lowFunds = remain < mla.allocated * 0.15;
+            return (
+              <TableRow
+                key={mla.id}
+                className="hover:bg-blue-50 transition-colors"
+              >
+                <TableCell className="flex items-center gap-2 px-2 py-2 whitespace-normal font-medium">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-200 text-blue-700 font-bold text-xs">
+                    {
+                      mla.mlaName.split(' ')
+                        .map(word => word[0])
+                        .join('')
+                        .substring(0, 2)
+                        .toUpperCase()
+                    }
+                  </span>
+                  {mla.mlaName}
+                </TableCell>
+                <TableCell className="px-2 py-2">{mla.constituency}</TableCell>
+                <TableCell className="px-2 py-2 text-right font-semibold text-blue-900">
+                  ₹{formatCurrency(mla.allocated)}
+                </TableCell>
+                <TableCell className="px-2 py-2 text-right">
+                  <span className="inline-block bg-green-50 text-green-800 px-2 py-0.5 rounded text-xs font-medium">
+                    ₹{formatCurrency(mla.utilized)}
+                  </span>
+                </TableCell>
+                <TableCell className={`px-2 py-2 text-right font-semibold ${lowFunds ? "text-red-700" : "text-green-700"}`}>
+                  <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${lowFunds ? "bg-red-100" : "bg-green-100"}`}>
+                    ₹{formatCurrency(remain)}
+                  </span>
+                </TableCell>
+                <TableCell className="px-2 py-2 text-center">
+                  <span className="inline-block bg-blue-100 text-blue-700 font-semibold rounded px-2 py-0.5">
+                    {mla.works}
+                  </span>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  </CardContent>
+</Card>
+
     </div>
   );
 };

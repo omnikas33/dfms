@@ -48,11 +48,6 @@ const VendorManagement = () => {
         <TabsList>
           <TabsTrigger value="list">Vendor List</TabsTrigger>
           <TabsTrigger value="form">Add Vendor</TabsTrigger>
-          <TabsTrigger value="verification">
-            <Shield className="h-4 w-4 mr-2" />
-            Verification
-          </TabsTrigger>
-          <TabsTrigger value="master">Master Data</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list">

@@ -1,430 +1,525 @@
-
-import React, { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import React, { useMemo, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Clock, CheckCircle, XCircle, Trash2 } from 'lucide-react';
-import FundApprovalForm from './FundApprovalForm';
-import ApprovalSummary from './ApprovalSummary';
-import ApprovalDetailsDialog from './ApprovalDetailsDialog';
-import { ApprovalRecordType } from './ApprovalHistory';
+import { Edit3, Eye } from 'lucide-react';
 
-export interface FundRequest {
-  id: string;
-  idaName: string;
-  requestAmount: string;
-  requestDate: string;
-  purpose: string;
-  submittedBy: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  priority: 'Low' | 'Medium' | 'High';
-  attachments: string[];
-  remarks?: string;
-  approvedAmount?: string;
-  approvalDate?: string;
-  approvedBy?: string;
-}
-
-const FundApproval = () => {
-  const { toast } = useToast();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<FundRequest | null>(null);
-  const [selectedApproval, setSelectedApproval] = useState<ApprovalRecordType | null>(null);
-
-  const [approvals, setApprovals] = useState<ApprovalRecordType[]>([
-    {
-      id: '1',
-      idaName: 'Mumbai IDA',
-      requestAmount: '5000000',
-      approvedAmount: '4500000',
-      requestDate: '2024-06-15',
-      approvalDate: '2024-06-18',
-      purpose: 'Infrastructure development',
-      status: 'Approved',
-      priority: 'High',
-      approvedBy: 'DNA Officer',
-      remarks: 'Approved with reduced amount due to budget constraints'
-    },
-    {
-      id: '2',
-      idaName: 'Pune IDA',
-      requestAmount: '3500000',
-      approvedAmount: '3500000',
-      requestDate: '2024-06-10',
-      approvalDate: '2024-06-12',
-      purpose: 'Rural development projects',
-      status: 'Approved',
-      priority: 'Medium',
-      approvedBy: 'DNA Officer',
-      remarks: 'Full amount approved'
-    },
-    {
-      id: '3',
-      idaName: 'Nagpur IDA',
-      requestAmount: '2750000',
-      approvedAmount: '0',
-      requestDate: '2024-06-08',
-      approvalDate: '2024-06-11',
-      purpose: 'Equipment procurement',
-      status: 'Rejected',
-      priority: 'Low',
-      approvedBy: 'DNA Officer',
-      remarks: 'Insufficient documentation provided'
+// --- DUMMY DATA ---
+const dummyWorks = [
+  {
+    id: 4,
+    name: 'जांबुत ते चांडोह रस्ता सुधारणा (ग्रा.पा. जांबुत)',
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    limit: 2500000,
+    
+    sanctionedDate: '2024-02-27',
+    financialYear: '2024-25',
+    vendor:'Om Nikas 1',
+    aadhar:'324783489',
+    adminApprovedAmount: 1558000,
+    workPortionAmount: 1350000,
+    taxDeductionAmount: 100000,
+    status: 'Pending',
+     vendorDetails: {
+      name: 'OM Nikas',       // Make sure this matches what you want to show
+      aadhar: '1234-5678-9012'
     }
-  ]);
+  },
+  {
+    id: 5,
+    name: 'जाधववाडी देव मंदिर मागे रांजणी रस्ता सुधारणा (ग्रा.पा. जाधववाडी)',
+    vendor: 'Dipak Jadhav',
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    limit: 2499999,
+    sanctionedDate: '2024-02-27',
+    financialYear: '2024-25',
+    adminApprovedAmount: 1600000,
+    workPortionAmount: 1450000,
+    taxDeductionAmount: 100000,
+    status: 'Pending',
+    vendorDetails: null
+  },
+  {
+    id: 6,
+    name: 'खडक ते जोगिवहीर फाटा रस्ता सुधारणा (ग्रा.पा. खडक)',
+    vendor: null,
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    limit: 1999993,
+    sanctionedDate: '2024-02-27',
+    financialYear: '2024-25',
+    adminApprovedAmount: 1223000,
+    workPortionAmount: 1223000,
+    taxDeductionAmount: 0,
+    status: 'Pending',
+    vendorDetails: null
+  },
+  {
+    id: 7,
+    name: 'तोरणे ते आढे बु||, रस्ता सुधारणा (खेड तालुका)',
+    vendor: null,
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    limit: 3000000,
+    sanctionedDate: '2024-02-28',
+    financialYear: '2024-25',
+    adminApprovedAmount: 2839000,
+    workPortionAmount: 2839000,
+    taxDeductionAmount: 0,
+    status: 'Pending',
+    vendorDetails: null
+  },
+  {
+    id: 8,
+    name: 'इंजमा ५२ चबळी माजगाव येथील रस्ता',
+    vendor: null,
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    limit: 3999459,
+    sanctionedDate: '2024-02-28',
+    financialYear: '2024-25',
+    adminApprovedAmount: 3188000,
+    workPortionAmount: 3188000,
+    taxDeductionAmount: 0,
+    status: 'Pending',
+    vendorDetails: null
+  },
+  {
+    id: 9,
+    name: 'कवळे कडव ती रस्ता (मागणी क्र. १९२)',
+    vendor: null,
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    limit: 1799826,
+    sanctionedDate: '2024-03-13',
+    financialYear: '2024-25',
+    adminApprovedAmount: 1440000,
+    workPortionAmount: 1440000,
+    taxDeductionAmount: 0,
+    status: 'Pending',
+    vendorDetails: null
+  },
+  {
+    id: 10,
+    name: 'कवळे हसेव ती रस्ता (मागणी क्र. १९१)',
+    vendor: null,
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    limit: 1652000,
+    sanctionedDate: '2024-03-11',
+    financialYear: '2024-25',
+    adminApprovedAmount: 1322000,
+    workPortionAmount: 1322000,
+    taxDeductionAmount: 0,
+    status: 'Pending',
+    vendorDetails: null
+  }
+];
 
-  const [pendingRequests] = useState<FundRequest[]>([
-    {
-      id: '4',
-      idaName: 'Aurangabad IDA',
-      requestAmount: '4200000',
-      requestDate: '2024-06-20',
-      purpose: 'Emergency infrastructure repair',
-      submittedBy: 'IDA Manager',
-      status: 'Pending',
-      priority: 'High',
-      attachments: ['emergency_report.pdf', 'cost_estimate.xlsx']
-    },
-    {
-      id: '5',
-      idaName: 'Nashik IDA',
-      requestAmount: '1800000',
-      requestDate: '2024-06-19',
-      purpose: 'Technology upgrade',
-      submittedBy: 'IDA Manager',
-      status: 'Pending',
-      priority: 'Medium',
-      attachments: ['tech_proposal.pdf']
+
+const dummyDemands = [
+  {
+    id: 'DM-2025-02',
+    workId: 4,
+    workName: 'जांबुत ते चांडोह रस्ता सुधारणा (ग्रा.पा. जांबुत)',
+    vendor: 'OM Nikas',
+    amount: 200000,
+    netPayable: 190000,
+    taxes: [
+      { id: 4, name: "GST (5%)", amount: 10000 }
+    ],
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    status: 'Approved',
+    date: '2024-07-01',
+    remarks: 'प्रथम हप्ता'
+  },
+  {
+    id: 'DM-2025-03',
+    workId: 5,
+    workName: 'जाधववाडी देव मंदिर मागे रांजणी रस्ता सुधारणा (ग्रा.पा. जाधववाडी)',
+    vendor: 'Sunil Shinde',
+    amount: 250000,
+    netPayable: 240000,
+    taxes: [
+      { id: 5, name: "TDS (4%)", amount: 10000 }
+    ],
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    status: 'Pending',
+    date: '2024-07-02',
+    remarks: 'पहिली मागणी'
+  },
+  {
+    id: 'DM-2025-04',
+    workId: 6,
+    workName: 'खडक ते जोगिवहीर फाटा रस्ता सुधारणा (ग्रा.पा. खडक)',
+    vendor: 'OM Nikas',
+    amount: 150000,
+    netPayable: 147000,
+    taxes: [
+      { id: 6, name: "GST (2%)", amount: 3000 }
+    ],
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    status: 'Approved',
+    date: '2024-07-03',
+    remarks: 'दुसरी मागणी'
+  },
+  {
+    id: 'DM-2025-05',
+    workId: 7,
+    workName: 'तोरणे ते आढे बु||, रस्ता सुधारणा (खेड तालुका)',
+    vendor: 'Sunil Shinde',
+    amount: 300000,
+    netPayable: 294000,
+    taxes: [
+      { id: 7, name: "TDS (2%)", amount: 6000 }
+    ],
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    status: 'Approved',
+    date: '2024-07-04',
+    remarks: 'आदर्श मागणी'
+  },
+  {
+    id: 'DM-2025-06',
+    workId: 8,
+    workName: 'इंजमा ५२ चबळी माजगाव येथील रस्ता',
+    vendor: 'OM Nikas',
+    amount: 250000,
+    netPayable: 240000,
+    taxes: [
+      { id: 8, name: "GST (4%)", amount: 10000 }
+    ],
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    status: 'Pending',
+    date: '2024-07-05',
+    remarks: 'पहिली मागणी'
+  },
+  {
+    id: 'DM-2025-07',
+    workId: 9,
+    workName: 'कवळे कडव ती रस्ता (मागणी क्र. १९२)',
+    vendor: 'OM Nikas',
+    amount: 100000,
+    netPayable: 98000,
+    taxes: [
+      { id: 9, name: "TDS (2%)", amount: 2000 }
+    ],
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    status: 'Approved',
+    date: '2024-07-06',
+    remarks: 'Initial Demand'
+  },
+  {
+    id: 'DM-2025-08',
+    workId: 10,
+    workName: 'कवळे हसेव ती रस्ता (मागणी क्र. १९१)',
+    vendor: 'Sunil Shinde',
+    amount: 180000,
+    netPayable: 176400,
+    taxes: [
+      { id: 10, name: "GST (2%)", amount: 3600 }
+    ],
+    scheme: 'ग्रामिण रस्ते विकास व मजबुतीकरण',
+    status: 'Pending',
+    date: '2024-07-07',
+    remarks: 'Final Demand'
+  }
+];
+
+const getStatusBadge = (status) => (
+  <Badge variant={
+    status === "Approved" ? "default" :
+    status === "Pending" ? "secondary" :
+    status === "Rejected" ? "destructive" : "secondary"
+  }>
+    {status}
+  </Badge>
+);
+
+// --- SCRUTINY MODAL ---
+const ScrutinyModal = ({ open, onClose, demand, work, onSave, viewOnly }) => {
+  const [amount, setAmount] = useState(demand?.amount ?? 0);
+  const [netPayable, setNetPayable] = useState(demand?.netPayable ?? 0);
+  const [remarks, setRemarks] = useState(demand?.remarks ?? '');
+  const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    if (demand) {
+      setAmount(demand.amount);
+      setNetPayable(demand.netPayable ?? demand.amount - (demand.taxes?.reduce((a, t) => a + (t.amount||0), 0) ?? 0));
+      setRemarks(demand.remarks ?? "");
     }
-  ]);
+  }, [demand]);
 
-  const handleApprove = (requestId: string, approvedAmount: string, remarks: string) => {
-    const request = pendingRequests.find(r => r.id === requestId);
-    if (request) {
-      const newApproval: ApprovalRecordType = {
-        id: requestId,
-        idaName: request.idaName,
-        requestAmount: request.requestAmount,
-        approvedAmount: approvedAmount,
-        requestDate: request.requestDate,
-        approvalDate: new Date().toISOString().split('T')[0],
-        purpose: request.purpose,
-        status: 'Approved',
-        priority: request.priority,
-        approvedBy: 'DNA Officer',
-        remarks: remarks
-      };
+  if (!open || !demand || !work) return null;
+  const totalTax = demand.taxes?.reduce((acc, t) => acc + (t.amount || 0), 0) ?? 0;
 
-      setApprovals(prev => [newApproval, ...prev]);
-      setIsDialogOpen(false);
-      setSelectedRequest(null);
+  const handleAmountChange = (val) => {
+    setAmount(val);
+    setNetPayable(val - totalTax);
+  };
 
-      toast({
-        title: "Fund Request Approved",
-        description: `₹${formatCurrency(approvedAmount)} approved for ${request.idaName}.`,
-      });
+  const handleApprove = () => {
+    if (amount <= 0) {
+      setError("Amount must be positive");
+      return;
     }
+    onSave({ ...demand, amount, netPayable, remarks, status: "Approved" });
+    onClose();
   };
-
-  const handleReject = (requestId: string, remarks: string) => {
-    const request = pendingRequests.find(r => r.id === requestId);
-    if (request) {
-      const newApproval: ApprovalRecordType = {
-        id: requestId,
-        idaName: request.idaName,
-        requestAmount: request.requestAmount,
-        approvedAmount: '0',
-        requestDate: request.requestDate,
-        approvalDate: new Date().toISOString().split('T')[0],
-        purpose: request.purpose,
-        status: 'Rejected',
-        priority: request.priority,
-        approvedBy: 'DNA Officer',
-        remarks: remarks
-      };
-
-      setApprovals(prev => [newApproval, ...prev]);
-      setIsDialogOpen(false);
-      setSelectedRequest(null);
-
-      toast({
-        title: "Fund Request Rejected",
-        description: `Request from ${request.idaName} has been rejected.`,
-        variant: "destructive"
-      });
-    }
+  const handleReject = () => {
+    onSave({ ...demand, amount, netPayable, remarks, status: "Rejected" });
+    onClose();
   };
-
-  const handleDelete = (id: string) => {
-    const approval = approvals.find(a => a.id === id);
-    if (approval) {
-      setApprovals(prev => prev.filter(a => a.id !== id));
-      toast({
-        title: "Record Deleted",
-        description: `Approval record for ${approval.idaName} has been removed.`,
-        variant: "destructive"
-      });
-    }
-  };
-
-  const formatCurrency = (amount: string) => {
-    if (!amount) return '';
-    const numericAmount = parseFloat(amount.replace(/,/g, ''));
-    if (isNaN(numericAmount)) return amount;
-    return numericAmount.toLocaleString('en-IN');
-  };
-
-  const handleReviewRequest = (request: FundRequest) => {
-    setSelectedRequest(request);
-    setIsDialogOpen(true);
-  };
-
-  const handleViewDetails = (approval: ApprovalRecordType) => {
-    setSelectedApproval(approval);
-    setIsDetailsDialogOpen(true);
-  };
-
-  const approvedRequests = approvals.filter(approval => approval.status === 'Approved');
-  const rejectedRequests = approvals.filter(approval => approval.status === 'Rejected');
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Approved':
-        return 'bg-green-100 text-green-800';
-      case 'Rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'High':
-        return 'bg-red-100 text-red-800';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Low':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const renderPendingRequestCard = (request: FundRequest) => (
-    <div key={request.id} className="border rounded-lg p-4">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-medium">{request.idaName}</h3>
-            <span className={`px-2 py-1 text-xs rounded-full ${
-              request.priority === 'High' ? 'bg-red-100 text-red-800' :
-              request.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-green-100 text-green-800'
-            }`}>
-              {request.priority} Priority
-            </span>
-          </div>
-          <p className="text-sm text-gray-600 mb-1">
-            Amount: ₹{formatCurrency(request.requestAmount)}
-          </p>
-          <p className="text-sm text-gray-600 mb-1">
-            Purpose: {request.purpose}
-          </p>
-          <p className="text-sm text-gray-600 mb-1">
-            Request Date: {new Date(request.requestDate).toLocaleDateString()}
-          </p>
-        </div>
-        <Button
-          onClick={() => handleReviewRequest(request)}
-          className="bg-[#193A9A] hover:bg-[#142f7c] text-white"
-        >
-          <Eye className="h-4 w-4 mr-2" />
-          Review
-        </Button>
-      </div>
-    </div>
-  );
-
-  const renderApprovalTable = (records: ApprovalRecordType[]) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>IDA</TableHead>
-          <TableHead>Requested</TableHead>
-          <TableHead>Approved</TableHead>
-          <TableHead>Request Date</TableHead>
-          <TableHead>Decision Date</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Priority</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {records.map((approval) => (
-          <TableRow key={approval.id}>
-            <TableCell className="font-medium">{approval.idaName}</TableCell>
-            <TableCell>₹{formatCurrency(approval.requestAmount)}</TableCell>
-            <TableCell>
-              {approval.status === 'Approved' 
-                ? `₹${formatCurrency(approval.approvedAmount)}` 
-                : '-'
-              }
-            </TableCell>
-            <TableCell>{new Date(approval.requestDate).toLocaleDateString()}</TableCell>
-            <TableCell>{new Date(approval.approvalDate).toLocaleDateString()}</TableCell>
-            <TableCell>
-              <Badge className={getStatusColor(approval.status)}>
-                {approval.status}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <Badge className={getPriorityColor(approval.priority)}>
-                {approval.priority}
-              </Badge>
-            </TableCell>
-            <TableCell className="text-right">
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleViewDetails(approval)}
-                  className="hover:bg-blue-50 hover:text-blue-600"
-                  title="View Details"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to delete this approval record?')) {
-                      handleDelete(approval.id);
-                    }
-                  }}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  title="Delete Record"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Fund Approval</h1>
-          <p className="text-gray-600">Review and approve fund requests from IDAs</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Summary */}
-        <div className="lg:col-span-1">
-          <ApprovalSummary />
-        </div>
-        
-        {/* Request Management Tabs */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <Tabs defaultValue="pending" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="pending" className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Pending ({pendingRequests.length})
-                </TabsTrigger>
-                <TabsTrigger value="approved" className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  Approved ({approvedRequests.length})
-                </TabsTrigger>
-                <TabsTrigger value="rejected" className="flex items-center gap-2">
-                  <XCircle className="h-4 w-4" />
-                  Rejected ({rejectedRequests.length})
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="pending" className="mt-4">
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold">Pending Fund Requests</h2>
-                  {pendingRequests.length > 0 ? (
-                    pendingRequests.map((request) => renderPendingRequestCard(request))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No pending requests</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="approved" className="mt-4">
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold text-green-700">Approved Requests History</h2>
-                  {approvedRequests.length > 0 ? (
-                    renderApprovalTable(approvedRequests)
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <CheckCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No approved requests</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="rejected" className="mt-4">
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold text-red-700">Rejected Requests History</h2>
-                  {rejectedRequests.length > 0 ? (
-                    renderApprovalTable(rejectedRequests)
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <XCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No rejected requests</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
+    <div className="fixed z-50 inset-0 flex items-center justify-center bg-black/30">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative animate-fadeIn">
+        <Button variant="ghost" className="absolute top-3 right-3" onClick={onClose}>✕</Button>
+        <h3 className="text-xl font-bold mb-4">Demand Scrutiny: <span className="text-primary">{demand.id}</span></h3>
+        <div className="grid grid-cols-2 gap-4 text-xs mb-4">
+          <div>
+            <div className="font-semibold text-gray-500">Scheme</div>
+            <div className="text-base font-semibold text-gray-800">{work.scheme}</div>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-500">Work Name</div>
+            <div className="text-base">{work.name}</div>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-500">Fin. Year</div>
+            <div>{work.financialYear}</div>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-500">Sanctioned Date</div>
+            <div>{work.sanctionedDate}</div>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-500">Vendor</div>
+            <div>{work.vendorDetails?.name || work.vendor}</div>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-500">Aadhar</div>
+            <div>{work.vendorDetails?.aadhar || '-'}</div>
           </div>
         </div>
-      </div>
-
-      {/* Review Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Review Fund Request</DialogTitle>
-          </DialogHeader>
-          {selectedRequest && (
-            <FundApprovalForm
-              request={selectedRequest}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              formatCurrency={formatCurrency}
+        <div className="grid grid-cols-3 gap-4 text-xs mb-3">
+          <div>
+            <div className="font-semibold text-gray-500">Admin Approved</div>
+            <div>₹{work.adminApprovedAmount?.toLocaleString()}</div>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-500">Work Portion</div>
+            <div>₹{work.workPortionAmount?.toLocaleString()}</div>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-500">Tax/Deduction</div>
+            <div>₹{work.taxDeductionAmount?.toLocaleString()}</div>
+          </div>
+        </div>
+        <div className="mb-2 text-xs">
+          <span className="font-semibold text-gray-500">Gross Total: </span>
+          <span className="font-semibold text-primary">₹{(work.workPortionAmount + work.taxDeductionAmount).toLocaleString()}</span>
+        </div>
+        <hr className="my-2"/>
+        <form
+          onSubmit={e => { e.preventDefault(); handleApprove(); }}
+          className="space-y-3"
+        >
+          <div>
+            <label className="block text-xs font-semibold mb-1">Demand Amount</label>
+            <input
+              type="number"
+              className="border rounded px-2 py-1 w-full text-base"
+              min={0}
+              value={amount}
+              onChange={e => handleAmountChange(Number(e.target.value))}
+              disabled={viewOnly}
+              required
             />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Details Dialog */}
-      <ApprovalDetailsDialog
-        approval={selectedApproval}
-        isOpen={isDetailsDialogOpen}
-        onClose={() => setIsDetailsDialogOpen(false)}
-        formatCurrency={formatCurrency}
-      />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold mb-1">Net Payable</label>
+            <input
+              type="number"
+              className="border rounded px-2 py-1 w-full bg-gray-100"
+              value={netPayable}
+              disabled
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold mb-1">Taxes</label>
+            <div>
+              {demand.taxes && demand.taxes.length > 0
+                ? demand.taxes.map((tax) => (
+                  <span key={tax.id} className="mr-3">{tax.name}: ₹{tax.amount?.toLocaleString()}</span>
+                ))
+                : "—"
+              }
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold mb-1">District Remarks</label>
+            <textarea
+              className="border rounded px-2 py-1 w-full"
+              rows={2}
+              value={remarks}
+              onChange={e => setRemarks(e.target.value)}
+              placeholder="Add remarks (required for reject)"
+              disabled={viewOnly}
+            />
+          </div>
+          {error && <div className="text-xs text-red-600">{error}</div>}
+          {!viewOnly &&
+            <div className="flex justify-end gap-2 mt-3">
+              <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+              <Button type="submit" variant="default">Approve & Forward</Button>
+              <Button type="button" variant="destructive" onClick={handleReject}>Reject</Button>
+            </div>
+          }
+        </form>
+      </div>
     </div>
   );
 };
 
-export default FundApproval;
+const DistrictFundApproval = () => {
+  const [works] = useState(dummyWorks);
+  const [demands, setDemands] = useState(dummyDemands);
+
+  const [tab, setTab] = useState('pending');
+
+  const [showScrutiny, setShowScrutiny] = useState(false);
+  const [scrutinyDemand, setScrutinyDemand] = useState(null);
+  const [scrutinyWork, setScrutinyWork] = useState(null);
+  const [viewOnly, setViewOnly] = useState(false);
+
+  // Filter by status
+  const filteredDemands = useMemo(() =>
+    demands.filter(d => d.status === (tab === 'pending' ? 'Pending' : 'Approved')),
+    [demands, tab]
+  );
+
+  // Scrutiny Save Handler
+  const handleScrutinySave = (updatedDemand) => {
+    setDemands(demands.map(d => d.id === updatedDemand.id ? updatedDemand : d));
+  };
+
+  return (
+    <div className="space-y-8">
+      <ScrutinyModal
+        open={showScrutiny}
+        onClose={() => setShowScrutiny(false)}
+        demand={scrutinyDemand}
+        work={scrutinyWork}
+        onSave={handleScrutinySave}
+        viewOnly={viewOnly}
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Fund Demand Scrutiny</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="pending">Pending</TabsTrigger>
+              <TabsTrigger value="forwarded">Forwarded</TabsTrigger>
+            </TabsList>
+            <TabsContent value={tab}>
+              <div className="overflow-x-auto rounded-2xl shadow border border-gray-200 bg-gray-50">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-100 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-3 text-center font-semibold">Action</th>
+                      <th className="px-4 py-3 font-semibold">Demand ID</th>
+                      <th className="px-4 py-3 font-semibold">Scheme</th>
+                      <th className="px-4 py-3 font-semibold">Work Name</th>
+                      <th className="px-4 py-3 font-semibold">Fin. Year</th>
+                      <th className="px-4 py-3 font-semibold">Sanctioned Date</th>
+                      <th className="px-4 py-3 font-semibold">Vendor</th>
+                      <th className="px-4 py-3 font-semibold">Admin Approved</th>
+                      <th className="px-4 py-3 font-semibold">Work Portion</th>
+                      <th className="px-4 py-3 font-semibold">Tax/Deduction</th>
+                      <th className="px-4 py-3 font-semibold">Gross Total</th>
+                      <th className="px-4 py-3 font-semibold">Demand Amount</th>
+                      <th className="px-4 py-3 font-semibold">Net Payable</th>
+                      <th className="px-4 py-3 font-semibold">Remarks</th>
+                      <th className="px-4 py-3 font-semibold text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredDemands.map((demand, idx) => {
+                      const workObj = works.find(w => w.id === demand.workId);
+                      if (!workObj) return null;
+                      const grossTotal = (workObj.workPortionAmount ?? 0) + (workObj.taxDeductionAmount ?? 0);
+
+                      return (
+                        <tr
+                          key={demand.id}
+                          className={`
+                            ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                            hover:bg-primary/10 transition border-b last:border-0
+                          `}
+                        >
+                          <td className="px-2 py-2 text-center">
+                            {tab === 'pending' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="mr-2"
+                                onClick={() => {
+                                  setScrutinyDemand(demand);
+                                  setScrutinyWork(workObj);
+                                  setViewOnly(false);
+                                  setShowScrutiny(true);
+                                }}
+                              >
+                                <Edit3 className="w-4 h-4 mr-1" /> Scrutiny
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setScrutinyDemand(demand);
+                                  setScrutinyWork(workObj);
+                                  setViewOnly(true);
+                                  setShowScrutiny(true);
+                                }}
+                              >
+                                <Eye className="w-4 h-4 mr-1" /> View
+                              </Button>
+                            )}
+                          </td>
+                          <td className="px-2 py-2 font-medium">{demand.id}</td>
+                          <td className="px-2 py-2">{workObj.scheme}</td>
+                          <td className="px-2 py-2">{workObj.name}</td>
+                          <td className="px-2 py-2">{workObj.financialYear}</td>
+                          <td className="px-2 py-2">{workObj.sanctionedDate}</td>
+                          <td className="px-2 py-2">{workObj.vendorDetails?.name || workObj.vendor}</td>
+                          <td className="px-2 py-2 text-right">₹{(workObj.adminApprovedAmount ?? 0).toLocaleString()}</td>
+                          <td className="px-2 py-2 text-right">₹{(workObj.workPortionAmount ?? 0).toLocaleString()}</td>
+                          <td className="px-2 py-2 text-right">₹{(workObj.taxDeductionAmount ?? 0).toLocaleString()}</td>
+                          <td className="px-2 py-2 text-right">₹{(grossTotal ?? 0).toLocaleString()}</td>
+                          <td className="px-2 py-2 text-right">₹{(demand.amount ?? 0).toLocaleString()}</td>
+                          <td className="px-2 py-2 text-right">₹{(demand.netPayable ?? 0).toLocaleString()}</td>
+                          <td className="px-2 py-2">{demand.remarks}</td>
+                          <td className="px-2 py-2 text-center">{getStatusBadge(demand.status)}</td>
+                        </tr>
+                      );
+                    })}
+                    {filteredDemands.length === 0 && (
+                      <tr>
+                        <td colSpan={15} className="text-center text-gray-400 py-6">
+                          No {tab === 'pending' ? "pending" : "forwarded"} demands
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default DistrictFundApproval;

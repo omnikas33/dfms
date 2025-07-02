@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Eye, Trash2, Search, Filter, Download, Clock, CheckCircle, XCircle, CreditCard } from 'lucide-react';
-import FundDisbursementDetails from './FundDisbursementDetails';
+import FundDisbursementDetails from './FundDemandDetails';
 import FundDisbursementForm from './FundDisbursementForm';
 
 const FundDisbursementList = () => {

@@ -1,116 +1,122 @@
+import React, { useState, useMemo } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { ArrowRightLeft } from 'lucide-react';
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeftRight, Plus } from 'lucide-react';
-import ReturnFundsForm from './ReturnFundsForm';
-import ReturnFundsHistory from './ReturnFundsHistory';
-import ReturnFundsSummary from './ReturnFundsSummary';
+const schemesData = [
+  { id: 's1', name: '30543611 ग्रामीण रस्ते विकास व मजबुतीकरण', limit: 300000, utilized: 100000 },
+  { id: 's2', name: 'सर्वसाधारण जिल्हा वार्षिक योजना', limit: 400000, utilized: 400000 },
+  { id: 's3', name: 'अन्य विशेष योजना', limit: 250000, utilized: 150000 }
+];
 
-export interface ReturnFundRecord {
-  id: string;
-  idaName: string;
-  returnAmount: string;
-  returnDate: string;
-  bankAccountNumber: string;
-  ifscCode: string;
-  utrNumber: string;
-  attachments: string[];
-  status: 'Pending' | 'Processing' | 'Completed' | 'Rejected';
-  submittedDate: string;
-  remarks?: string;
-}
+const DISTRICT_LIMIT = 1100000;
 
-const ReturnFunds = () => {
-  const [returnRecords, setReturnRecords] = useState<ReturnFundRecord[]>([
-    {
-      id: '1',
-      idaName: 'Mumbai IDA',
-      returnAmount: '15000000',
-      returnDate: '2024-01-15',
-      bankAccountNumber: '1234567890123456',
-      ifscCode: 'SBIN0001234',
-      utrNumber: 'UTR2024011512345',
-      attachments: ['bank_closure_cert.pdf', 'dna_certificate.pdf'],
-      status: 'Completed',
-      submittedDate: '2024-01-10',
-      remarks: 'Project completed successfully'
-    },
-    {
-      id: '2',
-      idaName: 'Pune IDA',
-      returnAmount: '8500000',
-      returnDate: '2024-01-20',
-      bankAccountNumber: '9876543210987654',
-      ifscCode: 'HDFC0001234',
-      utrNumber: 'UTR2024012012345',
-      attachments: ['bank_closure_cert.pdf'],
-      status: 'Processing',
-      submittedDate: '2024-01-18',
-    }
-  ]);
+export default function ReappropriationTab() {
+  const [fromScheme, setFromScheme] = useState<string>('s1');
+  const [toScheme, setToScheme] = useState<string>('s2');
+  const [transferAmount, setTransferAmount] = useState<string>('');
 
-  const handleSubmitReturn = (data: Omit<ReturnFundRecord, 'id' | 'status' | 'submittedDate'>) => {
-    const newRecord: ReturnFundRecord = {
-      ...data,
-      id: Date.now().toString(),
-      status: 'Pending',
-      submittedDate: new Date().toISOString().split('T')[0]
-    };
-    setReturnRecords(prev => [newRecord, ...prev]);
-  };
+  // Find scheme data by ID
+  const from = useMemo(() => schemesData.find(s => s.id === fromScheme), [fromScheme]);
+  const to = useMemo(() => schemesData.find(s => s.id === toScheme), [toScheme]);
+  const transferNum = Number(transferAmount) || 0;
 
-  const handleDeleteRecord = (id: string) => {
-    setReturnRecords(prev => prev.filter(record => record.id !== id));
-  };
+  const fromBalance = from ? from.limit - from.utilized : 0;
+  const toBalance = to ? to.limit - to.utilized : 0;
 
-  const formatCurrency = (amount: string) => {
-    return new Intl.NumberFormat('en-IN', {
-      maximumFractionDigits: 2,
-    }).format(parseFloat(amount));
-  };
+  // Calculate live values
+  const fromNewBalance = fromBalance - transferNum;
+  const toNewLimit = to ? to.limit + transferNum : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <ArrowLeftRight className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Return Funds</h1>
-          <p className="text-gray-600 mt-1">Process fund returns from IDAs back to SNA</p>
+    <Card>
+      <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <CardTitle className="text-xl font-bold">Re-Appropriation (Fund Limit Transfer)</CardTitle>
+        <div className="text-right space-y-1">
+          <div className="font-semibold text-gray-600">District Limit: <span className="text-blue-700">₹{DISTRICT_LIMIT.toLocaleString()}</span></div>
+          <div className="text-xs text-gray-500">Balance: <span className="font-semibold">{(DISTRICT_LIMIT - schemesData.reduce((t, s) => t + s.utilized, 0)).toLocaleString()}</span></div>
+        </div>
+      </CardHeader>
+<CardContent>
+  <div className="flex flex-col lg:flex-row gap-8 justify-between items-stretch">
+    {/* From Scheme */}
+    <div className="flex-1 flex flex-col border rounded-lg bg-blue-50 p-4 min-h-[300px]">
+      <label className="font-semibold mb-1">From Scheme</label>
+      <Select value={fromScheme} onValueChange={setFromScheme}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select Scheme" />
+        </SelectTrigger>
+        <SelectContent>
+          {schemesData.filter(s => s.id !== toScheme).map(s => (
+            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {from && (
+        <div className="mt-4 text-xs space-y-1">
+          <div>Scheme Limit: <span className="font-semibold">₹{from.limit.toLocaleString()}</span></div>
+          <div>Utilized: <span className="text-orange-600 font-semibold">₹{from.utilized.toLocaleString()}</span></div>
+          <div>Balance Limit: <span className="text-green-700 font-semibold">₹{fromBalance.toLocaleString()}</span></div>
+        </div>
+      )}
+      <div className="mt-4">
+        <label className="font-semibold block mb-1">Transfer Amount</label>
+        <Input
+          type="number"
+          min={0}
+          max={fromBalance}
+          value={transferAmount}
+          onChange={e => setTransferAmount(e.target.value.replace(/^0+/, ''))}
+          placeholder="Enter transfer amount"
+        />
+        <div className="text-xs text-gray-400 mt-1">
+          (Max: ₹{fromBalance.toLocaleString()})
+        </div>
+        {transferNum > fromBalance && (
+          <div className="text-xs text-red-600">Amount exceeds balance!</div>
+        )}
+      </div>
+      <div className="mt-auto pt-4">
+        <div className="text-xs font-semibold">
+          New Balance after transfer: <span className={fromNewBalance < 0 ? "text-red-700" : "text-green-700"}>₹{fromNewBalance.toLocaleString()}</span>
         </div>
       </div>
-
-      {/* Summary Cards */}
-      <ReturnFundsSummary records={returnRecords} formatCurrency={formatCurrency} />
-
-      {/* Main Content */}
-      <Tabs defaultValue="new-return" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="new-return" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            New Return
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <ArrowLeftRight className="h-4 w-4" />
-            Return History
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="new-return">
-          <ReturnFundsForm onSubmit={handleSubmitReturn} />
-        </TabsContent>
-
-        <TabsContent value="history">
-          <ReturnFundsHistory 
-            records={returnRecords}
-            onDelete={handleDeleteRecord}
-            formatCurrency={formatCurrency}
-          />
-        </TabsContent>
-      </Tabs>
     </div>
-  );
-};
 
-export default ReturnFunds;
+    {/* Arrow */}
+    <div className="hidden lg:flex flex-col justify-center items-center w-20">
+      <ArrowRightLeft className="h-12 w-12 text-blue-600" />
+    </div>
+
+    {/* To Scheme */}
+    <div className="flex-1 flex flex-col border rounded-lg bg-blue-50 p-4 min-h-[300px]">
+      <label className="font-semibold mb-1">To Scheme</label>
+      <Select value={toScheme} onValueChange={setToScheme}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select Scheme" />
+        </SelectTrigger>
+        <SelectContent>
+          {schemesData.filter(s => s.id !== fromScheme).map(s => (
+            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {to && (
+        <div className="mt-4 text-xs space-y-1">
+          <div>Scheme Limit: <span className="font-semibold">₹{to.limit.toLocaleString()}</span></div>
+          <div>Utilized: <span className="text-orange-600 font-semibold">₹{to.utilized.toLocaleString()}</span></div>
+          <div>Balance Limit: <span className="text-green-700 font-semibold">₹{toBalance.toLocaleString()}</span></div>
+        </div>
+      )}
+      <div className="mt-auto pt-4">
+        <div className="text-xs font-semibold">
+          New Limit after transfer: <span className="text-blue-700">₹{toNewLimit.toLocaleString()}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</CardContent>
+    </Card>
+  );
+}

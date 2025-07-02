@@ -1,239 +1,322 @@
-import React, { useState, useMemo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState } from 'react';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle
+  CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell
-} from '@/components/ui/table';
-import {
-  TrendingUp,
-  IndianRupee,
-  Users,
-  FileText,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Activity
-} from 'lucide-react';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem
-} from '@/components/ui/select';
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '@/components/ui/table';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
-// Dummy data types and mocks (replace with API calls)
-interface Scheme { id: string; name: string; }
-interface WorkRecord { id: string; title: string; totalLimit: number; demand: number; allocated: number; }
-
-const schemesList: Scheme[] = [
-  { id: 's1', name: 'Rural Development' },
-  { id: 's2', name: 'Urban Infrastructure' },
-  { id: 's3', name: 'Education' }
+// --- Dummy Data ---
+const statCards = [
+  { title: 'Total Funds Allocated', value: '₹403 Cr' },
+  { title: 'Active Districts', value: '01' },
+  { title: 'Total Schemes', value: '160' },
+  { title: 'Pending Demands', value: '1' },
+  { title: 'Total Demand Approved', value: '₹403 Cr' },
 ];
-const worksData: Record<string, WorkRecord[]> = {
-  s1: [
-    { id: 'w1', title: 'Road Construction', totalLimit: 400000000, demand: 20000000, allocated: 15000000 },
-    { id: 'w2', title: 'Well Digging', totalLimit: 100000000 , demand: 10000000, allocated: 8000000 }
+
+// District-wise table data
+const districtTableData = [
+  {
+    id: 'pune',
+    name: 'Pune',
+    limit: 403,
+    activeSchemes: 60,
+    fundUtilized: 230,
+  },
+  // Add more districts here if needed
+];
+
+// For dropdowns and detailed tables
+const schemesByDistrict = {
+  pune: [
+    {
+      id: 'sch1',
+      name: '३०५४३६११ ग्रामीण रस्ते विकास व मजबुतीकरण',
+      limit: 200,
+      works: [
+        { id: 'w1', name: 'काम क्र. ४२: जांबूत ते चांडोह (0/500–1/500) रस्ता सुधारित करणे', fundUtilized: 100 },
+        { id: 'w2', name: 'खडक ते जोगिव्हीर फाटा (0/500–1/500) रस्ता सुधारणा – ता. आंबेगाव', fundUtilized: 60 },
+      ],
+    },
+    {
+      id: 'sch2',
+      name: '३५४७८९९९ रस्ता दुरुस्ती योजना',
+      limit: 120,
+      works: [
+        { id: 'w3', name: 'ता. आंबेगाव: खडक ते जोगिव्हीर फाटा (0/500–1/500) दुरुस्ती', fundUtilized: 40 },
+      ],
+    },
   ],
-  s2: [
-    { id: 'w3', title: 'Bridge Repair', totalLimit: 4000000, demand: 300000, allocated: 2000000 }
-  ],
-  s3: [
-    { id: 'w4', title: 'School Renovation', totalLimit: 35, demand: 15, allocated: 12 }
-  ]
+  // ...other districts
 };
 
-const Dashboard: React.FC = () => {
-  const { user } = useAuth();
-  const role = user?.role || '';
+const Dashboard = () => {
+  // Dropdown State
+  const [selectedDistrict, setSelectedDistrict] = useState('pune');
+  const [selectedScheme, setSelectedScheme] = useState('');
+  const [selectedWork, setSelectedWork] = useState('');
 
-  // Dashboard Stats
-  const stats = useMemo(() => {
-    switch (role) {
-      case 'SNA': return [
-        { title: 'Total Allocated Funds', value: '₹125.5 Cr', icon: IndianRupee, color: 'text-green-600', bg: 'bg-green-100' },
-        { title: 'Active Districts', value: '36', icon: Users, color: 'text-blue-600', bg: 'bg-blue-100' },
-        { title: 'Pending Approvals', value: '12', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-        { title: 'Projects Completed', value: '245', icon: CheckCircle, color: 'text-purple-600', bg: 'bg-purple-100' }
-      ];
-      case 'DNA': return [
-        { title: 'Available Funds', value: '₹45.2 Cr', icon: IndianRupee, color: 'text-green-600', bg: 'bg-green-100' },
-        { title: 'Pending Requests', value: '8', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-        { title: 'Approved Today', value: '15', icon: CheckCircle, color: 'text-blue-600', bg: 'bg-blue-100' },
-        { title: 'Active Works', value: '67', icon: Activity, color: 'text-purple-600', bg: 'bg-purple-100' }
-      ];
-      case 'IDA': return [
-        { title: 'Project Sanctions', value: '23', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-100' },
-        { title: 'Fund Requests', value: '5', icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-100' },
-        { title: 'Pending Approvals', value: '3', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-        { title: 'Completed Projects', value: '45', icon: CheckCircle, color: 'text-purple-600', bg: 'bg-purple-100' }
-      ];
-      case 'IA': return [
-        { title: 'Assigned Works', value: '12', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-100' },
-        { title: 'Pending Payments', value: '7', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100' },
-        { title: 'Active Vendors', value: '25', icon: Users, color: 'text-green-600', bg: 'bg-green-100' },
-        { title: 'Progress Updates', value: '18', icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-100' }
-      ];
-      default: return [];
+  // Prepare dropdown options
+  const districtOptions = districtTableData.map((d) => ({
+    id: d.id,
+    name: d.name,
+  }));
+  const schemeOptions = schemesByDistrict[selectedDistrict] || [];
+  const workOptions =
+    schemeOptions.find((s) => s.id === selectedScheme)?.works || [];
+
+  // Helper: Show scheme+work data for selected filters
+  const renderSchemeWorkTable = () => {
+    if (!selectedScheme) {
+      // Show all schemes with limit and all works with fund utilized
+      return (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Scheme Name</TableHead>
+              <TableHead>Scheme Limit (Cr)</TableHead>
+              <TableHead>Work</TableHead>
+              <TableHead>Fund Utilized (Cr)</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {schemeOptions.map((scheme) =>
+              scheme.works.length ? (
+                scheme.works.map((work, idx) => (
+                  <TableRow key={work.id}>
+                    {idx === 0 && (
+                      <>
+                        <TableCell rowSpan={scheme.works.length}>
+                          {scheme.name}
+                        </TableCell>
+                        <TableCell rowSpan={scheme.works.length}>
+                          {scheme.limit}
+                        </TableCell>
+                      </>
+                    )}
+                    {idx !== 0 && null}
+                    <TableCell>{work.name}</TableCell>
+                    <TableCell>{work.fundUtilized}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow key={scheme.id}>
+                  <TableCell>{scheme.name}</TableCell>
+                  <TableCell>{scheme.limit}</TableCell>
+                  <TableCell colSpan={2} className="text-center text-gray-400">
+                    No works found
+                  </TableCell>
+                </TableRow>
+              )
+            )}
+          </TableBody>
+        </Table>
+      );
+    } else {
+      // Show selected scheme and optionally selected work
+      const scheme = schemeOptions.find((s) => s.id === selectedScheme);
+      if (!scheme) return null;
+      if (!selectedWork) {
+        // Show all works for this scheme
+        return (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Scheme Name</TableHead>
+                <TableHead>Scheme Limit (Cr)</TableHead>
+                <TableHead>Work</TableHead>
+                <TableHead>Fund Utilized (Cr)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {scheme.works.map((work) => (
+                <TableRow key={work.id}>
+                  <TableCell>{scheme.name}</TableCell>
+                  <TableCell>{scheme.limit}</TableCell>
+                  <TableCell>{work.name}</TableCell>
+                  <TableCell>{work.fundUtilized}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        );
+      } else {
+        // Show only the selected work under this scheme
+        const work = scheme.works.find((w) => w.id === selectedWork);
+        if (!work)
+          return (
+            <div className="text-center text-gray-500 p-4">No work found</div>
+          );
+        return (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Scheme Name</TableHead>
+                <TableHead>Scheme Limit (Cr)</TableHead>
+                <TableHead>Work</TableHead>
+                <TableHead>Fund Utilized (Cr)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>{scheme.name}</TableCell>
+                <TableCell>{scheme.limit}</TableCell>
+                <TableCell>{work.name}</TableCell>
+                <TableCell>{work.fundUtilized}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        );
+      }
     }
-  }, [role]);
-
-  // Quick Actions
-  // const quickActions = useMemo(() => {
-  //   switch (role) {
-  //     case 'SNA': return [
-  //       { label: 'Allocate Funds', path: '/fund-allocation', variant: 'default' },
-  //       { label: 'Add User', path: '/user-management', variant: 'outline' },
-  //       { label: 'View Reports', path: '/reports', variant: 'outline' }
-  //     ];
-  //     case 'DNA': return [
-  //       { label: 'Approve Funds', path: '/fund-approval', variant: 'default' },
-  //       { label: 'Verify Vendor', path: '/vendor-verification', variant: 'outline' },
-  //       { label: 'Return Funds', path: '/return-funds', variant: 'outline' }
-  //     ];
-  //     case 'IDA': return [
-  //       { label: 'Approve Project', path: '/project-approval', variant: 'default' },
-  //       { label: 'Request Enhancement', path: '/fund-enhancement', variant: 'outline' },
-  //       { label: 'View Progress', path: '/reports', variant: 'outline' }
-  //     ];
-  //     case 'IA': return [
-  //       { label: 'Disburse Funds', path: '/fund-disbursement', variant: 'default' },
-  //       { label: 'Add Vendor', path: '/vendor-management', variant: 'outline' },
-  //       { label: 'Update Progress', path: '/project-progress', variant: 'outline' }
-  //     ];
-  //     default: return [];
-  //   }
-  // }, [role]);
-
-  // Scheme-wise Limits stub
-  const schemeLimits = [
-    { scheme: 'Rural Development', total: '50 Cr', used: '20 Cr', remaining: '30 Cr' },
-    { scheme: 'Urban Infrastructure', total: '30 Cr', used: '10 Cr', remaining: '20 Cr' },
-    { scheme: 'Education', total: '25 Cr', used: '15 Cr', remaining: '10 Cr' }
-  ];
-  const showSchemeLimits = ['SNA','DNA','IDA','IA'].includes(role);
-
-  // Workwise Demands state
-  const [selectedScheme, setSelectedScheme] = useState<string>(schemesList[0].id);
-  const works = useMemo(() => worksData[selectedScheme] || [], [selectedScheme]);
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-primary to-primary-hover text-white rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-2">Welcome back, {user?.name}!</h1>
-        <p className="text-primary-foreground/80">{role} Dashboard — {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+    <div className="space-y-4">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center p-6">
+            <p className="text-sm text-gray-600">Total Funds Allocated</p>
+            <p className="text-2xl font-bold mt-2">₹403 Cr</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center p-6">
+            <p className="text-sm text-gray-600">Active Districts</p>
+            <p className="text-2xl font-bold mt-2">01</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center p-6">
+            <p className="text-sm text-gray-600">Total Schemes</p>
+            <p className="text-2xl font-bold mt-2">160</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center p-6">
+            <p className="text-sm text-gray-600">Pending Demands</p>
+            <p className="text-2xl font-bold mt-2">0</p>
+          </CardContent>
+        </Card>
+        {/* If you want Total Demand Approved as a 5th card, add below */}
+        {/* <Card>
+          <CardContent className="flex flex-col items-center justify-center p-6">
+            <p className="text-sm text-gray-600">Total Demand Approved</p>
+            <p className="text-2xl font-bold mt-2">₹403 Cr</p>
+          </CardContent>
+        </Card> */}
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((s, i) => (
-          <Card key={i} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{s.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{s.value}</p>
-              </div>
-              <div className={`p-3 rounded-full ${s.bg}`}><s.icon className={`h-6 w-6 ${s.color}`}/></div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Quick Actions / Activities / Scheme Limits */}
-      <div className={`grid grid-cols-1 lg:gap-6 ${showSchemeLimits ? 'lg:grid-cols-1' : 'lg:grid-cols-2'}`}>      
-       
-
-        {/* Scheme-Wise Limits Card */}
-        {showSchemeLimits && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Scheme-Wise Limits</CardTitle>
-              <CardDescription>Allocated vs Used vs Remaining</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Scheme</TableHead><TableHead>Total</TableHead><TableHead>Used</TableHead><TableHead>Remaining</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {schemeLimits.map((r, i) => (
-                    <TableRow key={i}>
-                      <TableCell>{r.scheme}</TableCell><TableCell>{r.total}</TableCell><TableCell>{r.used}</TableCell><TableCell>{r.remaining}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Workwise Demands Card */}
+      {/* District Wise Table */}
       <Card>
-        <CardHeader className="flex items-center justify-between">
-          <div>
-            <CardTitle>Workwise Demands</CardTitle>
-            <CardDescription>Select a scheme to view works and funding</CardDescription>
-          </div>
-          <div className="w-60">
-            <Select value={selectedScheme} onValueChange={setSelectedScheme}>
-              <SelectTrigger><SelectValue placeholder="Select Scheme"/></SelectTrigger>
-              <SelectContent>
-                {schemesList.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+        <CardHeader>
+          <CardTitle>District Wise Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Work Title</TableHead>
-                  <TableHead className="text-right">Total Limit</TableHead>
-                  <TableHead className="text-right">Demand</TableHead>
-                  <TableHead className="text-right">Allocated</TableHead>
-                  <TableHead className="text-right">Remaining</TableHead>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>District</TableHead>
+                <TableHead>Limit (Cr)</TableHead>
+                <TableHead>Active Schemes</TableHead>
+                <TableHead>Fund Utilized (Cr)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {districtTableData.map((d) => (
+                <TableRow key={d.id}>
+                  <TableCell>{d.name}</TableCell>
+                  <TableCell>{d.limit}</TableCell>
+                  <TableCell>{d.activeSchemes}</TableCell>
+                  <TableCell>{d.fundUtilized}</TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {works.map(w => {
-                  const remaining = w.totalLimit - w.allocated;
-                  return (
-                    <TableRow key={w.id}>
-                      <TableCell>{w.title}</TableCell>
-                      <TableCell className="text-right">{w.totalLimit}</TableCell>
-                      <TableCell className="text-right">{w.demand}</TableCell>
-                      <TableCell className="text-right">{w.allocated}</TableCell>
-                      <TableCell className="text-right">{remaining}</TableCell>
-                    </TableRow>
-                  );
-                })}
-                {works.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-gray-500">No works found.</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Dropdowns */}
+      <div className="flex flex-wrap gap-1">
+        {/* District Dropdown */}
+        <div className="w-48">
+          <Select
+            value={selectedDistrict}
+            onValueChange={(val) => {
+              setSelectedDistrict(val);
+              setSelectedScheme('');
+              setSelectedWork('');
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select District" />
+            </SelectTrigger>
+            <SelectContent>
+              {districtOptions.map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {/* Scheme Dropdown */}
+        <div className="w-48">
+          <Select
+            value={selectedScheme}
+            onValueChange={(val) => {
+              setSelectedScheme(val);
+              setSelectedWork('');
+            }}
+            disabled={!schemeOptions.length}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Scheme" />
+            </SelectTrigger>
+            <SelectContent>
+              {schemeOptions.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {/* Work Dropdown */}
+        <div className="w-48">
+          <Select
+            value={selectedWork}
+            onValueChange={setSelectedWork}
+            disabled={!selectedScheme || !workOptions.length}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Work" />
+            </SelectTrigger>
+            <SelectContent>
+              {workOptions.map((w) => (
+                <SelectItem key={w.id} value={w.id}>
+                  {w.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Table for selected district/scheme/work */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {districtOptions.find((d) => d.id === selectedDistrict)?.name} - Scheme & Work Utilization
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {renderSchemeWorkTable()}
         </CardContent>
       </Card>
     </div>

@@ -8,32 +8,40 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/auth/LoginForm';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/components/dashboard/Dashboard';
+import IaDashboard from '@/components/ia/IaDashboard';
+import WorkVendor from '@/components/ia/WorkVendor';
+
+import DistrictDashboard from '@/components/dna/DistrictDashboard';
+import IaMaster from '@/components/dna/IaMaster';
+import WorkMaster from '@/components/dna/WorkMaster';
+
+
+
 import FundAllocation from '@/components/dna/FundAllocation';
 import FundAllocationSna from '@/components/sna/FundAllocation';
-
-
 import UserManagement from '@/components/sna/UserManagement';
 import DepartmentManagement from '@/components/sna/DepartmentManagement';
 import FundApproval from '@/components/dna/FundApproval';
 import ReturnFunds from '@/components/dna/ReturnFunds';
 import VendorVerification from '@/components/dna/VendorVerification';
 import FundDisbursement from '@/components/ia/FundDisbursement';
-import ProjectProgress from '@/components/ia/ProjectProgress';
 import VendorManagement from '@/components/ia/VendorManagement';
-import ProjectApproval from '@/components/ida/ProjectApproval';
+import ProjectApproval from '@/components/dna/SchemeMaster';
 import FundEnhancement from '@/components/ida/FundEnhancement';
-import FundReturn from '@/components/ida/FundReturn';
-import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Reports from '@/components/reports/Reports';
 import Settings from '@/components/settings/Settings';
 import TaxMaster from './components/tax-master/tax-master';
+import SchemeMaster from '@/components/dna/SchemeMaster';
 
 const queryClient = new QueryClient();
 
+/** 
+ * PrivateRoute: Wrapper to check login state
+ * @param children - the component to render if authenticated
+ */
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
-  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -41,8 +49,65 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       </div>
     );
   }
-  
   return user ? <Layout>{children}</Layout> : <Navigate to="/login" />;
+};
+
+const HomeRedirect = () => {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return null; // or a spinner
+
+  if (!user) return <Navigate to="/login" replace />;
+  switch (user.role) {
+    case 'IA_ADMIN':
+      return <Navigate to="/iadashboard" replace />;
+    case 'DISTRICT_ADMIN':
+      return <Navigate to="/district-dashboard" replace />;
+    case 'STATE_ADMIN':
+      return <Navigate to="/dashboard" replace />;
+    default:
+      return <Navigate to="/dashboard" replace />; // fallback
+  }
+};
+
+const getRoleBasedRoutes = (user: any) => {
+  if (!user) return [];
+  switch (user.role) {
+    case 'STATE_ADMIN':
+      return [
+        <Route key="dashboard" path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />,
+        <Route key="district-allocation" path="/district-allocation" element={<PrivateRoute><FundAllocationSna /></PrivateRoute>} />,
+        <Route key="district-management" path="/district-management" element={<PrivateRoute><DepartmentManagement /></PrivateRoute>} />,
+        <Route key="fund-demands" path="/fund-demands" element={<PrivateRoute><UserManagement /></PrivateRoute>} />,
+        <Route key="scheme-master" path="/scheme-master" element={<PrivateRoute><ProjectApproval /></PrivateRoute>} />,
+        <Route key="tax-master" path="/tax-master" element={<PrivateRoute><TaxMaster /></PrivateRoute>} />,
+        <Route key="reports" path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />,
+        <Route key="settings" path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+      ];
+    case 'DISTRICT_ADMIN':
+      return [
+        <Route key="dashboard" path="/district-dashboard" element={<PrivateRoute><DistrictDashboard /></PrivateRoute>} />,
+                <Route key="view-demands" path="/view-demands" element={<PrivateRoute><FundApproval /></PrivateRoute>} />,
+        <Route key="ia-master" path="/ia-master" element={<PrivateRoute><IaMaster /></PrivateRoute>} />,
+        <Route key="scheme-master" path="/scheme-master" element={<PrivateRoute><SchemeMaster /></PrivateRoute>} />,
+        <Route key="work-master" path="/work-master" element={<PrivateRoute><WorkMaster /></PrivateRoute>} />,
+        <Route key="fund-allocation" path="/fund-allocation" element={<PrivateRoute><FundAllocation /></PrivateRoute>} />,
+        <Route key="reappropriation" path="/reappropriation" element={<PrivateRoute><ReturnFunds /></PrivateRoute>} />,
+        <Route key="tax-master" path="/tax-master" element={<PrivateRoute><TaxMaster /></PrivateRoute>} />,
+        <Route key="reports" path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
+      ];
+    case 'IA_ADMIN':
+      return [
+        <Route key="dashboard" path="/iadashboard" element={<PrivateRoute><IaDashboard /></PrivateRoute>} />,
+        <Route key="fund-demand" path="/fund-demand" element={<PrivateRoute><FundDisbursement /></PrivateRoute>} />,
+        <Route key="vendor-master" path="/vendor-master" element={<PrivateRoute><VendorManagement /></PrivateRoute>} />,
+        <Route key="work-vendor" path="/work-vendor" element={<PrivateRoute><WorkVendor /></PrivateRoute>} />,
+        <Route key="reports" path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
+      ];
+    default:
+      return [
+        <Route key="dashboard" path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      ];
+  }
 };
 
 const AuthenticatedApp = () => {
@@ -50,9 +115,7 @@ const AuthenticatedApp = () => {
   const [showLogin, setShowLogin] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      setShowLogin(false);
-    }
+    if (user) setShowLogin(false);
   }, [user]);
 
   if (showLogin && !user) {
@@ -61,99 +124,25 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      <Route path="/login" element={
-        user ? <Navigate to="/dashboard" /> : <LoginForm onSuccess={() => setShowLogin(false)} />
-      } />
-      <Route path="/dashboard" element={
-        <PrivateRoute>
-          <Dashboard />
-        </PrivateRoute>
-      } />
-      <Route path="/fund-allocation" element={
-        <PrivateRoute>
-          <FundAllocation />
-        </PrivateRoute>
-      } />
-       <Route path="/fund-allocation-sna" element={
-        <PrivateRoute>
-          <FundAllocationSna />
-        </PrivateRoute>
-      } />
-      <Route path="/user-management" element={
-        <PrivateRoute>
-          <UserManagement />
-        </PrivateRoute>
-      } />
-      <Route path="/department-management" element={
-        <PrivateRoute>
-          <DepartmentManagement />
-        </PrivateRoute>
-      } />
-      <Route path="/fund-approval" element={
-        <PrivateRoute>
-          <FundApproval />
-        </PrivateRoute>
-      } />
-      <Route path="/return-funds" element={
-        <PrivateRoute>
-          <ReturnFunds />
-        </PrivateRoute>
-      } />
-      <Route path="/vendor-verification" element={
-        <PrivateRoute>
-          <VendorVerification />
-        </PrivateRoute>
-      } />
-      <Route path="/project-approval" element={
-        <PrivateRoute>
-          <ProjectApproval />
-        </PrivateRoute>
-      } />
-      <Route path="/fund-enhancement" element={
-        <PrivateRoute>
-          <FundEnhancement />
-        </PrivateRoute>
-      } />
-      <Route path="/tax-master" element={
-        <PrivateRoute>
-          <TaxMaster />
-        </PrivateRoute>
-      } />
-      <Route path="/fund-return" element={
-        <PrivateRoute>
-          <FundReturn />
-        </PrivateRoute>
-      } />
-      <Route path="/fund-disbursement" element={
-        <PrivateRoute>
-          <FundDisbursement />
-        </PrivateRoute>
-      } />
-      <Route path="/project-progress" element={
-        <PrivateRoute>
-          <ProjectProgress />
-        </PrivateRoute>
-      } />
-      <Route path="/vendor-management" element={
-        <PrivateRoute>
-          <VendorManagement />
-        </PrivateRoute>
-      } />
-      <Route path="/reports" element={
-        <PrivateRoute>
-          <Reports />
-        </PrivateRoute>
-      } />
-      <Route path="/settings" element={
-        <PrivateRoute>
-          <Settings />
-        </PrivateRoute>
-      } />
-      <Route path="/" element={<Navigate to="/dashboard" />} />
+      <Route path="/" element={<HomeRedirect />} />
+      <Route
+        path="/login"
+        element={
+          user
+            ? user.role === 'IA_ADMIN'
+              ? <Navigate to="/iadashboard" replace />
+              : user.role === 'DISTRICT_ADMIN'
+                ? <Navigate to="/district-dashboard" replace />
+                : <Navigate to="/dashboard" replace />
+            : <LoginForm onSuccess={() => setShowLogin(false)} />
+        }
+      />
+      {...getRoleBasedRoutes(user)}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

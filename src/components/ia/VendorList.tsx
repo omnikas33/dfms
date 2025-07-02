@@ -68,11 +68,11 @@ const VendorList = () => {
   const [vendors] = useState<Vendor[]>([
     {
       id: '1',
-      name: 'Rajesh Kumar Sharma',
+      name: 'OM Infra PVT LTD',
       aadhaarNumber: '1234-5678-9012',
       gstNumber: '27ABCDE1234F1Z5',
       panNumber: 'ABCDE1234F',
-      contactPerson: 'Rajesh Kumar',
+      contactPerson: 'Om Nikas ',
       phone: '+91 98765 43210',
       email: 'rajesh@example.com',
       address: '123 MG Road, Bandra',
@@ -125,63 +125,7 @@ const VendorList = () => {
       paymentEligible: true,
       lastUpdated: '2024-01-15',
       updatedBy: 'IA Officer'
-    },
-    {
-      id: '2',
-      name: 'Tech Solutions Pvt Ltd',
-      aadhaarNumber: '9876-5432-1098',
-      gstNumber: '27XYZDE5678G2Z6',
-      panNumber: 'XYZDE5678G',
-      contactPerson: 'Priya Sharma',
-      phone: '+91 98765 43211',
-      email: 'priya@techsolutions.com',
-      address: '456 Tech Park, Andheri',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pincode: '400053',
-      registrationDate: '2024-02-10',
-      verificationStatus: 'Pending',
-      aadhaarVerified: true,
-      gstVerified: false,
-      type: 'Company',
-      category: 'Technology',
-      status: 'Active',
-      performanceRating: 4.2,
-      creditLimit: '2000000',
-      paymentTerms: 'Net 15',
-      bankDetails: {
-        accountNumber: '9876543210',
-        ifsc: 'HDFC0001234',
-        bankName: 'HDFC Bank',
-        branch: 'Andheri Branch'
-      },
-      documents: [
-        {
-          name: 'Aadhaar Card',
-          status: 'Verified',
-          uploadDate: '2024-02-10'
-        },
-        {
-          name: 'GST Certificate',
-          status: 'Pending',
-          uploadDate: '2024-02-10'
-        }
-      ],
-      contracts: [
-        {
-          id: 'C002',
-          name: 'IT Infrastructure Setup',
-          status: 'Active',
-          startDate: '2024-02-10',
-          endDate: '2024-08-31',
-          value: '1500000'
-        }
-      ],
-      paymentEligible: false,
-      lastUpdated: '2024-02-10',
-      updatedBy: 'IA Officer'
-    }
-  ]);
+    }  ]);
 
   const filteredVendors = vendors.filter(vendor =>
     vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

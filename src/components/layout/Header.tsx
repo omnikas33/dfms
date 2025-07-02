@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Bell, LogOut, User, Settings } from 'lucide-react';
@@ -14,6 +15,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 
 const Header = () => {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [notifications] = useState([
     { id: 1, message: 'New fund allocation approved', type: 'success' },
@@ -21,9 +23,10 @@ const Header = () => {
     { id: 3, message: 'Project deadline approaching', type: 'info' }
   ]);
 
-  const handleLogout = () => {
-    logout();
-  };
+ const handleLogout = () => {
+  logout();
+  navigate('/login', { replace: true }); // always go to login page
+};
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 h-16 fixed top-0 left-64 right-0 z-40">

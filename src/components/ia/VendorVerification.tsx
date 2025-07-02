@@ -77,10 +77,10 @@ const VendorVerification = () => {
       const mockResult: VerificationResult = {
         aadhaarValid: verificationResult?.aadhaarValid || false,
         gstValid: true,
-        vendorName: verificationResult?.vendorName || "Rajesh Kumar Sharma",
-        address: "Tech Solutions Pvt Ltd, 123, MG Road, Mumbai, Maharashtra - 400001",
+        vendorName: verificationResult?.vendorName || "OM Nikas",
+        address: "Tech Solutions Pvt Ltd, 123, MG Road, Pune, Maharashtra - 400001",
         bankDetails: {
-          accountNumber: "1234567890",
+          accountNumber: "89234492472",
           ifsc: "ICIC0001234",
           bankName: "ICICI Bank"
         },

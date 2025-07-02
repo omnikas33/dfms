@@ -19,8 +19,8 @@ interface ReturnFundsFormProps {
 
 // Mock IDA data - this would come from master data
 const idaOptions = [
-  { value: 'mumbai-ida', label: 'Mumbai IDA' },
-  { value: 'pune-ida', label: 'Pune IDA' },
+  { value: 'ZIlla Parishad', label: 'Zilla Parishad IA' },
+  { value: 'PWD-ida', label: 'Pune IDA' },
   { value: 'nagpur-ida', label: 'Nagpur IDA' },
   { value: 'nashik-ida', label: 'Nashik IDA' },
   { value: 'aurangabad-ida', label: 'Aurangabad IDA' },
@@ -105,11 +105,9 @@ const ReturnFundsForm: React.FC<ReturnFundsFormProps> = ({ onSubmit }) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
-          New Fund Return Request
+          New Implementing Agency Registration
         </CardTitle>
-        <CardDescription>
-          Process fund return from IDA back to SNA
-        </CardDescription>
+        
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -132,11 +130,11 @@ const ReturnFundsForm: React.FC<ReturnFundsFormProps> = ({ onSubmit }) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="return-amount">Return Amount (₹) *</Label>
+              <Label htmlFor="return-amount">User Name</Label>
               <Input
                 id="return-amount"
                 type="number"
-                placeholder="Enter amount to return"
+                placeholder="Username"
                 value={formData.returnAmount}
                 onChange={(e) => handleInputChange('returnAmount', e.target.value)}
                 required
@@ -144,32 +142,30 @@ const ReturnFundsForm: React.FC<ReturnFundsFormProps> = ({ onSubmit }) => {
             </div>
           </div>
 
-          {/* Return Date */}
-          <div className="space-y-2">
-            <Label>Return Date *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !selectedDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP") : "Select return date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="return-amount">Set Password </Label>
+              <Input
+                id="return-amount"
+                type="number"
+                placeholder=""
+                value={formData.returnAmount}
+                onChange={(e) => handleInputChange('returnAmount', e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="return-amount">Contact Number</Label>
+              <Input
+                id="return-amount"
+                type="number"
+                placeholder="Number"
+                value={formData.returnAmount}
+                onChange={(e) => handleInputChange('returnAmount', e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           {/* Bank Details */}
@@ -198,7 +194,7 @@ const ReturnFundsForm: React.FC<ReturnFundsFormProps> = ({ onSubmit }) => {
           </div>
 
           {/* UTR Number */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="utr-number">UTR Number *</Label>
             <Input
               id="utr-number"
@@ -207,52 +203,8 @@ const ReturnFundsForm: React.FC<ReturnFundsFormProps> = ({ onSubmit }) => {
               onChange={(e) => handleInputChange('utrNumber', e.target.value)}
               required
             />
-          </div>
+          </div> */}
 
-          {/* File Attachments */}
-          <div className="space-y-4">
-            <Label>Attachments *</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-sm text-gray-600 mb-2">
-                Upload Bank Closure Certificate and DNA Certificate
-              </p>
-              <input
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="file-upload"
-              />
-              <Label htmlFor="file-upload" className="cursor-pointer">
-                <Button type="button" variant="outline" className="mt-2">
-                  Choose Files
-                </Button>
-              </Label>
-            </div>
-
-            {/* Display uploaded files */}
-            {formData.attachments.length > 0 && (
-              <div className="space-y-2">
-                <Label>Uploaded Files:</Label>
-                {formData.attachments.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                    <span className="text-sm">{file}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeAttachment(index)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
 
           {/* Remarks */}
           <div className="space-y-2">
@@ -301,7 +253,7 @@ const ReturnFundsForm: React.FC<ReturnFundsFormProps> = ({ onSubmit }) => {
             ) : (
               <>
                 <CheckCircle className="mr-2 h-4 w-4" />
-                Submit Return Request
+                Add New Implementing Agency
               </>
             )}
           </Button>

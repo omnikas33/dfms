@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,7 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
     aadhaarNumber: '',
     gstNumber: '',
     vendorName: '',
+    firmName: '',
     address: '',
     bankAccountNumber: '',
     ifscCode: '',
@@ -50,19 +50,15 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
       });
       return;
     }
-
     setIsVerifying(true);
-    
-    // Simulate API call
     setTimeout(() => {
       setVerificationStatus(prev => ({ ...prev, aadhaar: true }));
       setFormData(prev => ({
         ...prev,
-        vendorName: 'Rajesh Kumar Sharma',
+        vendorName: 'OM Nikas',
         address: '123, MG Road, Mumbai, Maharashtra - 400001'
       }));
       setIsVerifying(false);
-      
       toast({
         title: "Aadhaar Verified",
         description: "Identity verification successful.",
@@ -79,31 +75,27 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
       });
       return;
     }
-
     setIsVerifying(true);
-    
-    // Simulate API call
     setTimeout(() => {
       setVerificationStatus(prev => ({ ...prev, gst: true }));
       setFormData(prev => ({
         ...prev,
         bankAccountNumber: '1234567890',
         ifscCode: 'ICIC0001234',
-        bankName: 'ICICI Bank'
+        bankName: 'ICICI Bank',
+        // Autofill Firm Name on GST verification
+        firmName: 'OM Infra Pvt Ltd'
       }));
       setIsVerifying(false);
-      
       toast({
         title: "GST Verified",
-        description: "Business verification successful.",
+        description: "Business verification successful. Firm Name autofilled.",
       });
     }, 2000);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation
     if (!verificationStatus.aadhaar || !verificationStatus.gst) {
       toast({
         title: "Verification Required",
@@ -112,8 +104,7 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
       });
       return;
     }
-
-    if (!formData.vendorName || !formData.address || !formData.bankAccountNumber || !formData.ifscCode) {
+    if (!formData.vendorName || !formData.firmName || !formData.address || !formData.bankAccountNumber || !formData.ifscCode) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -121,12 +112,10 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
       });
       return;
     }
-
     toast({
       title: "Vendor Added",
       description: "Vendor has been successfully registered and verified.",
     });
-    
     onSubmit();
   };
 
@@ -149,7 +138,6 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
               <Shield className="h-5 w-5" />
               Identity & Business Verification
             </h3>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="aadhaarNumber">Aadhaar Number *</Label>
@@ -181,7 +169,6 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
                   </Badge>
                 )}
               </div>
-
               <div>
                 <Label htmlFor="gstNumber">GST Number *</Label>
                 <div className="flex gap-2">
@@ -225,10 +212,21 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
                   id="vendorName"
                   value={formData.vendorName}
                   onChange={(e) => handleInputChange('vendorName', e.target.value)}
-                  placeholder="Auto-filled from Aadhaar verification"
                   required
                   readOnly={verificationStatus.aadhaar}
                   className={verificationStatus.aadhaar ? "bg-gray-100" : ""}
+                />
+              </div>
+              <div>
+                <Label htmlFor="firmName">Firm Name *</Label>
+                <Input
+                  id="firmName"
+                  value={formData.firmName}
+                  onChange={(e) => handleInputChange('firmName', e.target.value)}
+                  required
+                  readOnly={verificationStatus.gst}
+                  className={verificationStatus.gst ? "bg-gray-100" : ""}
+                  placeholder="Autofilled on GST verification"
                 />
               </div>
               <div>
@@ -237,10 +235,10 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
                   id="contactNumber"
                   value={formData.contactNumber}
                   onChange={(e) => handleInputChange('contactNumber', e.target.value)}
-                  placeholder="Enter contact number"
+                  placeholder=""
                 />
               </div>
-              <div className="md:col-span-2">
+              <div>
                 <Label htmlFor="email">Email Address</Label>
                 <Input
                   id="email"
@@ -255,14 +253,12 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
 
           {/* Address Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Address Information</h3>
             <div>
               <Label htmlFor="address">Address *</Label>
               <Textarea
                 id="address"
                 value={formData.address}
                 onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="Auto-filled from Aadhaar verification"
                 rows={3}
                 required
                 readOnly={verificationStatus.aadhaar}
@@ -281,7 +277,6 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
                   id="bankAccountNumber"
                   value={formData.bankAccountNumber}
                   onChange={(e) => handleInputChange('bankAccountNumber', e.target.value)}
-                  placeholder="Auto-filled from GST verification"
                   required
                   readOnly={verificationStatus.gst}
                   className={verificationStatus.gst ? "bg-gray-100" : ""}
@@ -293,7 +288,6 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
                   id="ifscCode"
                   value={formData.ifscCode}
                   onChange={(e) => handleInputChange('ifscCode', e.target.value.toUpperCase())}
-                  placeholder="Auto-filled from GST verification"
                   required
                   readOnly={verificationStatus.gst}
                   className={verificationStatus.gst ? "bg-gray-100" : ""}
@@ -305,7 +299,6 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
                   id="bankName"
                   value={formData.bankName}
                   onChange={(e) => handleInputChange('bankName', e.target.value)}
-                  placeholder="Auto-filled from GST verification"
                   required
                   readOnly={verificationStatus.gst}
                   className={verificationStatus.gst ? "bg-gray-100" : ""}
