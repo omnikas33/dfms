@@ -374,23 +374,23 @@ const FundDemand = () => {
       value: stats.totalVendors,
       desc: "Vendors mapped",
     },
+    // {
+    //   label: "Total Limit",
+    //   value: `₹${(stats.totalLimit ?? 0).toLocaleString()}`,
+    //   desc: "Works limit (filtered)",
+    // },
     {
-      label: "Total Limit",
-      value: `₹${(stats.totalLimit ?? 0).toLocaleString()}`,
-      desc: "Works limit (filtered)",
-    },
-    {
-      label: "Total Demand",
+      label: "Total Demand Amount",
       value: `₹${(stats.totalDemandAmount ?? 0).toLocaleString()}`,
       desc: "Sum of all demands",
     },
     {
-      label: "Approved Demand",
+      label: "Approved Demand Amount",
       value: `₹${(stats.totalDemandApproved ?? 0).toLocaleString()}`,
       desc: "Sum of approved demands",
     },
     {
-      label: "Pending Demands",
+      label: " No of Pending Demands",
       value: stats.pendingDemands,
       desc: "Awaiting approval",
     },
@@ -415,7 +415,7 @@ const FundDemand = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="overview">Sanctioned Works</TabsTrigger>
           <TabsTrigger value="pending">Pending Demands</TabsTrigger>
           <TabsTrigger value="approved">Approved Demands</TabsTrigger>
         </TabsList>
@@ -431,12 +431,12 @@ const FundDemand = () => {
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Scheme</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Work Name</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Vendor</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-700">Aadhar No</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-700">Sanctioned Date</th>
+                  {/* <th className="px-4 py-3 text-left font-semibold text-gray-700">Aadhar No</th> */}
+                  {/* <th className="px-4 py-3 text-left font-semibold text-gray-700">Sanctioned Date</th> */}
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Fin. Year</th>
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">Admin Approved</th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-700">Portion Amt</th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-700">Tax/Deduction</th>
+                  {/* <th className="px-4 py-3 text-right font-semibold text-gray-700">Portion Amt</th>
+                  <th className="px-4 py-3 text-right font-semibold text-gray-700">Tax/Deduction</th> */}
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">Gross Total</th>
                   {/* <th className="px-4 py-3 text-right font-semibold text-gray-700">Work Limit</th> */}
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">Total Demanded</th>
@@ -458,42 +458,45 @@ const FundDemand = () => {
                         idx % 2 === 0 ? "bg-white" : "bg-gray-50"
                       } hover:bg-primary/5 transition border-b last:border-0`}
                     >
-                                            <td className="px-4 py-2 text-center">
-                        <div className="flex justify-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedWork(work);
-                              setShowForm(true);
-                            }}
-                          >
-                            <FilePlus2 className="w-4 h-4 mr-1" /> Demand
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const demand = workDemands.slice(-1)[0];
-                              setSelectedDemand(demand || null);
-                              setSelectedWork(work);
-                              setShowDetails(true);
-                            }}
-                          >
-                            <Eye className="w-4 h-4 mr-1" /> View
-                          </Button>
-                        </div>
-                      </td>
+                    <td className="px-4 py-2 text-center">
+  <div className="flex flex-col items-center gap-2">
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => {
+        setSelectedWork(work);
+        setShowForm(true);
+      }}
+      className="w-full"
+    >
+      <FilePlus2 className="w-4 h-4 mr-1" /> Demand
+    </Button>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => {
+        const demand = workDemands.slice(-1)[0];
+        setSelectedDemand(demand || null);
+        setSelectedWork(work);
+        setShowDetails(true);
+      }}
+      className="w-full"
+    >
+      <Eye className="w-4 h-4 mr-1" /> View
+    </Button>
+  </div>
+</td>
+
 
                       <td className="px-4 py-2">{work.scheme}</td>
                       <td className="px-4 py-2 font-medium text-gray-900">{work.name}</td>
                       <td className="px-4 py-2">{work.vendorDetails?.name || work.vendor}</td>
-                      <td className="px-4 py-2">{work.vendorDetails?.aadhar || '3798431498'}</td>
-                      <td className="px-4 py-2">{work.sanctionedDate}</td>
+                      {/* <td className="px-4 py-2">{work.vendorDetails?.aadhar || '3798431498'}</td>
+                      <td className="px-4 py-2">{work.sanctionedDate}</td> */}
                       <td className="px-4 py-2">{work.financialYear}</td>
                       <td className="px-4 py-2 text-right">₹{(work.adminApprovedAmount ?? 0).toLocaleString()}</td>
-                      <td className="px-4 py-2 text-right">₹{(work.workPortionAmount ?? 0).toLocaleString()}</td>
-                      <td className="px-4 py-2 text-right">₹{(work.taxDeductionAmount ?? 0).toLocaleString()}</td>
+                      {/* <td className="px-4 py-2 text-right">₹{(work.workPortionAmount ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-2 text-right">₹{(work.taxDeductionAmount ?? 0).toLocaleString()}</td> */}
                       <td className="px-4 py-2 text-right">₹{(grossTotal ?? 0).toLocaleString()}</td>
                       {/* <td className="px-4 py-2 text-right">₹{(work.limit ?? 0).toLocaleString()}</td> */}
                       <td className="px-4 py-2 text-right">₹{(totalDemanded ?? 0).toLocaleString()}</td>

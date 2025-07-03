@@ -28,7 +28,7 @@ const SIDEBAR_CONFIG = {
   DISTRICT_ADMIN: [
     { path: '/district-dashboard',   icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/view-demands',         icon: CheckCircle,     label: 'View IA Demands' },
-    { path: '/fund-allocation',      icon: IndianRupee,     label: 'Sanction Fund to Schemes' },
+    { path: '/fund-allocation',      icon: IndianRupee,     label: 'Budget Sanctioned to Schemes' },
     { path: '/scheme-master',        icon: FileText,        label: 'Scheme Master' },
     { path: '/ia-master',            icon: Users,           label: 'IA Master' },
     { path: '/work-master',          icon: FileText,        label: 'SCheme-Work Master' },
@@ -40,7 +40,7 @@ const SIDEBAR_CONFIG = {
     { path: '/iadashboard',            icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/fund-demand',          icon: CreditCard,      label: 'Fund Demand' },
     { path: '/vendor-master',        icon: Users,           label: 'Vendor Master' },
-    { path: '/work-vendor',          icon: TrendingUp,      label: 'Work Vendor Management' },
+    { path: '/work-vendor',          icon: TrendingUp,      label: 'Work Vendor Mapping' },
     // { path: '/project-progress',     icon: TrendingUp,      label: 'Project Progress' },
     { path: '/reports',              icon: BarChart3,       label: 'Reports' }
   ]

@@ -1,406 +1,280 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import { Users, FilePlus2, CheckCircle, AlertTriangle, TrendingUp, Download, Bell, Eye } from "lucide-react";
-import { BarChart, Bar, PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
+import {
+  FilePlus2,
+  Users,
+  Download,
+  TrendingUp,
+  PieChart,
+  Eye,
+} from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Pie as RPie,
+  PieChart as RChart,
+  Cell,
+} from "recharts";
 
 const statsData = {
   totalDemanded: 11230000,
   totalApproved: 8500000,
-  utilization: 76,
   works: 12,
   schemes: 4,
   vendors: 6,
-  overdue: 2
+  demands: 15,
+  approvedDemands: 8,
+  pendingDemands: 5,
 };
-
-const colors = ["#2563eb", "#14b8a6", "#eab308", "#ef4444", "#7c3aed", "#f59e42"];
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.4, ease: "easeOut" },
+  }),
+};
 const barData = [
   { month: "Apr", Demand: 2000000, Approved: 1600000 },
   { month: "May", Demand: 3200000, Approved: 2500000 },
   { month: "Jun", Demand: 4000000, Approved: 2900000 },
-  { month: "Jul", Demand: 2040000, Approved: 1500000 }
+  { month: "Jul", Demand: 2040000, Approved: 1500000 },
 ];
+
 const pieStatusData = [
   { status: "Approved", value: 8500000 },
   { status: "Pending", value: 2730000 },
-  { status: "Rejected", value: 120000 }
+  { status: "Rejected", value: 120000 },
 ];
+
 const schemePieData = [
   { scheme: "ग्रामीण रस्ते", value: 6500000 },
   { scheme: "पुल बांधकाम", value: 3000000 },
-  { scheme: "जल व्यवस्थापन", value: 1730000 }
+  { scheme: "जल व्यवस्थापन", value: 1730000 },
 ];
 
-const vendors = [
-  { id: 1, name: "OM Nikas", demands: 5 },
-  { id: 2, name: "Sunil Shinde", demands: 4 },
-  { id: 3, name: "Rajesh Kumar", demands: 3 },
-  { id: 4, name: "Vikas Bhave", demands: 2 },
+const demandsData = [
+  {
+    id: "DM-001",
+    work: "जांबुत ते चांडोह",
+    scheme: "ग्रामीण रस्ते",
+    amount: 1200000,
+    status: "Pending",
+    date: "2025-06-12",
+  },
+  {
+    id: "DM-002",
+    work: "खडक ते जोगिवहीर",
+    scheme: "पुल बांधकाम",
+    amount: 2200000,
+    status: "Approved",
+    date: "2025-06-10",
+  },
+  {
+    id: "DM-003",
+    work: "इंजमा माजगाव",
+    scheme: "जल व्यवस्थापन",
+    amount: 1800000,
+    status: "Pending",
+    date: "2025-06-05",
+  },
 ];
 
-const activities = [
-  { type: "Demand Approved", text: "₹16 लाख मंजूर for 'खडक ते जोगिवहीर'", time: "15 mins ago", icon: <CheckCircle className="w-4 h-4 text-green-500" /> },
-  { type: "Vendor Registered", text: "Sunil Shinde registered for 'पुल बांधकाम'", time: "45 mins ago", icon: <Users className="w-4 h-4 text-blue-500" /> },
-  { type: "Demand Pending", text: "₹12 लाख for 'जांबुत ते चांडोह' awaiting approval", time: "1 hr ago", icon: <AlertTriangle className="w-4 h-4 text-yellow-500" /> },
-  { type: "Fund Released", text: "₹5 लाख released for 'कवळे कडव ती रस्ता'", time: "Today", icon: <TrendingUp className="w-4 h-4 text-primary" /> }
-];
-
-// Filter options
 const fyList = ["2024-25", "2023-24"];
 const schemeList = ["ग्रामीण रस्ते", "पुल बांधकाम", "जल व्यवस्थापन"];
-const workList = [
-  "जांबुत ते चांडोह", "खडक ते जोगिवहीर", "इंजमा माजगाव", "कवळे कडव", "कवळे हसेव"
-];
+const workList = ["जांबुत ते चांडोह", "खडक ते जोगिवहीर", "इंजमा माजगाव"];
 const statusList = ["Approved", "Pending", "Rejected"];
 
 export default function IADashboard() {
-  const [filters, setFilters] = useState({ fy: "", scheme: "", work: "", status: "", vendor: "" });
+  const navigate = useNavigate();
+  const [filters, setFilters] = useState({
+    fy: "",
+    scheme: "",
+    work: "",
+    status: "",
+  });
 
-  // (For demo, filtering does not change stats, just UI)
-  const utilizationPct = Math.round((statsData.totalApproved / statsData.totalDemanded) * 100);
+  const filteredDemands = demandsData.filter((d) => {
+    return (
+      (!filters.scheme || d.scheme === filters.scheme) &&
+      (!filters.work || d.work === filters.work) &&
+      (!filters.status || d.status === filters.status)
+    );
+  });
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Fund Demand Report", 14, 16);
+    autoTable(doc, {
+      head: [["Demand ID", "Work", "Scheme", "Amount", "Status", "Date"]],
+      body: filteredDemands.map((d) => [
+        d.id,
+        d.work,
+        d.scheme,
+        `₹${d.amount.toLocaleString()}`,
+        d.status,
+        d.date,
+      ]),
+    });
+    doc.save("Fund_Demand_Report.pdf");
+  };
 
   return (
-    <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
-      {/* Top Bar: Actions & Notifications */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">IA Dashboard</h2>
-          <p className="text-muted-foreground">संपूर्ण निधी, कामे, योजना, विक्रेते, मागणी आणि अहवाल</p>
-        </div>
+    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+      {/* Top Actions */}
+      <div className="flex flex-wrap justify-between items-center gap-4">
+        <h2 className="text-2xl font-semibold text-gray-800">
+          IA Dashboard
+        </h2>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" className="gap-2"><Bell /> Notifications</Button>
-          <Button variant="outline" className="gap-2"><Download /> Download Report</Button>
-          <Button variant="default" className="gap-2 bg-[#193A9A] text-white"><FilePlus2 /> Raise New Demand</Button>
-          <Button variant="secondary" className="gap-2"><Users /> Register Vendor</Button>
+          <Button onClick={handleDownloadPDF} className="bg-blue-600 text-white hover:bg-blue-700">
+            <Download className="w-4 h-4 mr-2" /> Download Report
+          </Button>
+          <Button onClick={() => navigate("/fund-demand")} className="bg-blue-600 text-white hover:bg-blue-700">
+            <FilePlus2 className="w-4 h-4 mr-2" /> Raise New Demand
+          </Button>
+          <Button onClick={() => navigate("/vendor-detail")} variant="outline">
+            <Users className="w-4 h-4 mr-2" /> Register Vendor
+          </Button>
         </div>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-medium">योजना</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">{statsData.schemes}</div>
-            <p className="text-xs text-muted-foreground">Total Schemes</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-medium">कामे</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">{statsData.works}</div>
-            <p className="text-xs text-muted-foreground">Total Works</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-medium">विक्रेते</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">{statsData.vendors}</div>
-            <p className="text-xs text-muted-foreground">Total Vendors</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-medium">Fund Demanded</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">₹{statsData.totalDemanded.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Total Demands</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-medium">Fund Approved</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">₹{statsData.totalApproved.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Approved so far</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-medium">Utilization</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <div className="text-xl font-bold">{utilizationPct}%</div>
-              <Progress value={utilizationPct} className="w-24" />
-            </div>
-            <p className="text-xs text-muted-foreground">Funds Utilized</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-medium">Overdue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold text-red-600">{statsData.overdue}</div>
-            <p className="text-xs text-muted-foreground">Overdue Demands</p>
-          </CardContent>
-        </Card>
+     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+  {[
+    { title: "Total Schemes", value: statsData.schemes },
+    { title: "Total Works", value: statsData.works },
+    { title: "Registered Vendors", value: statsData.vendors },
+    { title: "Fund Demanded (Cr)", value: `₹${(statsData.totalDemanded / 1e7).toFixed(2)} Cr` },
+    { title: "Fund Approved (Cr)", value: `₹${(statsData.totalApproved / 1e7).toFixed(2)} Cr` },
+    {
+      title: "Demands Summary",
+      value: (
+        <div className="space-y-1 text-sm">
+          <div>Total: {statsData.demands}</div>
+          <div>Approved: {statsData.approvedDemands}</div>
+          <div>Pending: {statsData.pendingDemands}</div>
+        </div>
+      ),
+    },
+  ].map((card, i) => (
+    <motion.div
+      key={card.title}
+      custom={i}
+      initial="hidden"
+      animate="visible"
+      variants={cardVariants}
+      className="bg-white shadow rounded-lg flex flex-col justify-between p-4 hover:shadow-md transition-shadow duration-300"
+    >
+      <div className="space-y-2">
+        <div className="text-gray-600 text-sm font-medium">{card.title}</div>
+        <div className="text-2xl font-bold text-gray-800">{card.value}</div>
       </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="mt-4"
+        onClick={() => console.log(`View details for ${card.title}`)}
+      >
+        View Details
+      </Button>
+    </motion.div>
+  ))}
+</div>
 
-      {/* Filter Panel */}
+      {/* Filters */}
       <div className="flex flex-wrap gap-4 items-end">
         <div>
-          <label className="block text-sm font-medium mb-1">आर्थिक वर्ष</label>
+          <label className="block mb-1 text-sm">Financial Year</label>
           <select className="border rounded px-3 py-2" value={filters.fy} onChange={e => setFilters(f => ({ ...f, fy: e.target.value }))}>
             <option value="">All</option>
-            {fyList.map(fy => <option key={fy} value={fy}>{fy}</option>)}
+            {fyList.map(fy => <option key={fy}>{fy}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">योजना</label>
+          <label className="block mb-1 text-sm">Scheme</label>
           <select className="border rounded px-3 py-2" value={filters.scheme} onChange={e => setFilters(f => ({ ...f, scheme: e.target.value }))}>
             <option value="">All</option>
-            {schemeList.map(s => <option key={s} value={s}>{s}</option>)}
+            {schemeList.map(s => <option key={s}>{s}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">काम</label>
+          <label className="block mb-1 text-sm">Work</label>
           <select className="border rounded px-3 py-2" value={filters.work} onChange={e => setFilters(f => ({ ...f, work: e.target.value }))}>
             <option value="">All</option>
-            {workList.map(w => <option key={w} value={w}>{w}</option>)}
+            {workList.map(w => <option key={w}>{w}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Status</label>
+          <label className="block mb-1 text-sm">Status</label>
           <select className="border rounded px-3 py-2" value={filters.status} onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}>
             <option value="">All</option>
-            {statusList.map(s => <option key={s} value={s}>{s}</option>)}
+            {statusList.map(s => <option key={s}>{s}</option>)}
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Vendor</label>
-          <select className="border rounded px-3 py-2" value={filters.vendor} onChange={e => setFilters(f => ({ ...f, vendor: e.target.value }))}>
-            <option value="">All</option>
-            {vendors.map(v => <option key={v.id} value={v.name}>{v.name}</option>)}
-          </select>
-        </div>
-        <Button variant="outline" className="ml-auto">Reset Filters</Button>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Fund Demand/Approval Bar Chart */}
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" /> Demand vs Approved (FY)
-            </CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="flex gap-2 items-center"><TrendingUp className="w-4 h-4" /> Demand vs Approved</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={barData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
-                <YAxis tickFormatter={x => "₹" + (x / 1e6) + "M"} />
-                <Tooltip formatter={v => "₹" + v.toLocaleString()} />
+                <YAxis tickFormatter={(x) => `₹${(x / 1e6).toFixed(0)}M`} />
+                <Tooltip formatter={(v) => `₹${v.toLocaleString()}`} />
                 <Legend />
-                <Bar dataKey="Demand" fill={colors[0]} />
-                <Bar dataKey="Approved" fill={colors[1]} />
+                <Bar dataKey="Demand" fill="#2563eb" />
+                <Bar dataKey="Approved" fill="#14b8a6" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        {/* Pie Chart Status */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <PieChart className="w-5 h-5" /> Demand Status
-            </CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="flex gap-2 items-center"><PieChart className="w-4 h-4" /> Demand Status</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={pieStatusData}
-                  dataKey="value"
-                  nameKey="status"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={70}
-                  label={entry => entry.status}
-                >
-                  {pieStatusData.map((entry, idx) => (
-                    <Cell key={entry.status} fill={colors[idx % colors.length]} />
+              <RChart>
+                <RPie data={pieStatusData} dataKey="value" nameKey="status" cx="50%" cy="50%" outerRadius={70} label>
+                  {pieStatusData.map((entry, index) => (
+                    <Cell key={entry.status} fill={["#2563eb", "#eab308", "#ef4444"][index]} />
                   ))}
-                </Pie>
-                <Tooltip formatter={v => "₹" + v.toLocaleString()} />
-              </PieChart>
+                </RPie>
+                <Tooltip formatter={(v) => `₹${v.toLocaleString()}`} />
+              </RChart>
             </ResponsiveContainer>
-            <div className="flex gap-3 mt-3 text-xs">
-              {pieStatusData.map((d, idx) => (
-                <span key={d.status} className="flex items-center gap-1">
-                  <span style={{ backgroundColor: colors[idx % colors.length] }} className="inline-block w-3 h-3 rounded-full"></span>
-                  {d.status}
-                </span>
-              ))}
-            </div>
           </CardContent>
         </Card>
-        {/* Scheme-wise Fund Donut */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <PieChart className="w-5 h-5" /> Scheme-wise Fund
-            </CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="flex gap-2 items-center"><PieChart className="w-4 h-4" /> Scheme-wise Fund</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={schemePieData}
-                  dataKey="value"
-                  nameKey="scheme"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={70}
-                  label={entry => entry.scheme}
-                >
-                  {schemePieData.map((entry, idx) => (
-                    <Cell key={entry.scheme} fill={colors[idx % colors.length]} />
+              <RChart>
+                <RPie data={schemePieData} dataKey="value" nameKey="scheme" cx="50%" cy="50%" outerRadius={70} label>
+                  {schemePieData.map((entry, index) => (
+                    <Cell key={entry.scheme} fill={["#2563eb", "#14b8a6", "#7c3aed"][index]} />
                   ))}
-                </Pie>
-                <Tooltip formatter={v => "₹" + v.toLocaleString()} />
-              </PieChart>
+                </RPie>
+                <Tooltip formatter={(v) => `₹${v.toLocaleString()}`} />
+              </RChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
-
-      {/* Tabs for Table/Report Drilldown */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><BarChart /> Fund Demand & Vendor Report</CardTitle>
-          <CardDescription>Live fund demand, approvals, vendors and overdue status.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="demands">
-            <TabsList>
-              <TabsTrigger value="demands">Demands</TabsTrigger>
-              <TabsTrigger value="vendors">Vendors</TabsTrigger>
-              <TabsTrigger value="overdue">Overdue</TabsTrigger>
-            </TabsList>
-            {/* Demand Table */}
-            <TabsContent value="demands">
-              <div className="overflow-x-auto mt-4">
-                <table className="min-w-full text-sm border">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-semibold">Demand ID</th>
-                      <th className="px-3 py-2 text-left font-semibold">Work</th>
-                      <th className="px-3 py-2 text-left font-semibold">Scheme</th>
-                      <th className="px-3 py-2 text-right font-semibold">Amount</th>
-                      <th className="px-3 py-2 text-center font-semibold">Status</th>
-                      <th className="px-3 py-2 text-center font-semibold">Date</th>
-                      <th className="px-3 py-2 text-center font-semibold">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { id: "DM-2024-01", work: "जांबुत ते चांडोह", scheme: "ग्रामीण रस्ते", amount: 1558000, status: "Pending", date: "2024-06-10" },
-                      { id: "DM-2024-02", work: "खडक ते जोगिवहीर", scheme: "ग्रामीण रस्ते", amount: 1223000, status: "Approved", date: "2024-06-02" },
-                      { id: "DM-2024-03", work: "इंजमा माजगाव", scheme: "ग्रामीण रस्ते", amount: 3188000, status: "Pending", date: "2024-05-22" },
-                    ].map((row, i) => (
-                      <tr key={row.id} className={i % 2 ? "bg-gray-50" : ""}>
-                        <td className="px-3 py-2">{row.id}</td>
-                        <td className="px-3 py-2">{row.work}</td>
-                        <td className="px-3 py-2">{row.scheme}</td>
-                        <td className="px-3 py-2 text-right">₹{row.amount.toLocaleString()}</td>
-                        <td className="px-3 py-2 text-center">
-                          <Badge variant={
-                            row.status === "Approved" ? "default" :
-                            row.status === "Pending" ? "secondary" :
-                            "destructive"
-                          }>{row.status}</Badge>
-                        </td>
-                        <td className="px-3 py-2 text-center">{row.date}</td>
-                        <td className="px-3 py-2 text-center">
-                          <Button size="icon" variant="outline"><Eye className="w-4 h-4" /></Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-            {/* Vendors Table */}
-            <TabsContent value="vendors">
-              <div className="overflow-x-auto mt-4">
-                <table className="min-w-full text-sm border">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-semibold">Vendor</th>
-                      <th className="px-3 py-2 text-left font-semibold">GST</th>
-                      <th className="px-3 py-2 text-left font-semibold">Works Assigned</th>
-                      <th className="px-3 py-2 text-center font-semibold">Status</th>
-                      <th className="px-3 py-2 text-center font-semibold">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {vendors.map((v, i) => (
-                      <tr key={v.id} className={i % 2 ? "bg-gray-50" : ""}>
-                        <td className="px-3 py-2">{v.name}</td>
-                        <td className="px-3 py-2">GSTIN-{v.id}</td>
-                        <td className="px-3 py-2">{v.demands}</td>
-                        <td className="px-3 py-2 text-center"><Badge>Active</Badge></td>
-                        <td className="px-3 py-2 text-center">
-                          <Button size="icon" variant="outline"><Eye className="w-4 h-4" /></Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-            {/* Overdue */}
-            <TabsContent value="overdue">
-              <div className="overflow-x-auto mt-4">
-                <table className="min-w-full text-sm border">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-semibold">Demand ID</th>
-                      <th className="px-3 py-2 text-left font-semibold">Work</th>
-                      <th className="px-3 py-2 text-left font-semibold">Amount</th>
-                      <th className="px-3 py-2 text-center font-semibold">Days Overdue</th>
-                      <th className="px-3 py-2 text-center font-semibold">Send Reminder</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { id: "DM-2023-09", work: "कवळे कडव", amount: 900000, overdue: 13 },
-                      { id: "DM-2023-12", work: "जाधववाडी रस्ता", amount: 1300000, overdue: 8 }
-                    ].map((row, i) => (
-                      <tr key={row.id} className={i % 2 ? "bg-gray-50" : ""}>
-                        <td className="px-3 py-2">{row.id}</td>
-                        <td className="px-3 py-2">{row.work}</td>
-                        <td className="px-3 py-2 text-right">₹{row.amount.toLocaleString()}</td>
-                        <td className="px-3 py-2 text-center">{row.overdue} days</td>
-                        <td className="px-3 py-2 text-center">
-                          <Button size="sm" variant="destructive" className="gap-1"><Bell className="w-3 h-3" /> Send Reminder</Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-
     </div>
   );
 }

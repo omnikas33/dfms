@@ -250,9 +250,7 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
               </div>
             </div>
           </div>
-
-          {/* Address Information */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <div>
               <Label htmlFor="address">Address *</Label>
               <Textarea
@@ -265,7 +263,7 @@ const VendorForm: React.FC<VendorFormProps> = ({ onCancel, onSubmit }) => {
                 className={verificationStatus.aadhaar ? "bg-gray-100" : ""}
               />
             </div>
-          </div>
+          </div> */}
 
           {/* Bank Details */}
           <div className="space-y-4">

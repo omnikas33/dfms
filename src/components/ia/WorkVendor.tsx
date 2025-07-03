@@ -212,7 +212,7 @@ const AssignVendorModal = ({
             <div>{SCHEMES.find(s => s.id === work.schemeId)?.name}</div>
           </div>
           <div>
-            <span className="font-semibold text-gray-700">Work Name</span>
+            <span className="font-semibold text-gray-700">Work Title</span>
             <div>{work.name}</div>
           </div>
           <div>
@@ -275,7 +275,7 @@ const AssignVendorModal = ({
             }
           </div>
           <div>
-            <label className="font-semibold text-gray-700 block mb-1">Portion Amount</label>
+            <label className="font-semibold text-gray-700 block mb-1">Work Portion Amount</label>
             <Input
               type="number"
               value={portionAmount}
@@ -423,7 +423,7 @@ const WorkVendorManagement = () => {
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-4 mb-6">
         <div>
-          <label className="block font-medium mb-1 text-gray-700">FY Year</label>
+          <label className="block font-medium mb-1 text-gray-700">Financial Year</label>
           <select className="border rounded px-3 py-2" value={filterFy} onChange={e => setFilterFy(e.target.value)}>
             <option value="">All</option>
             {getFyList().map(fy => <option key={fy} value={fy}>{fy}</option>)}
@@ -461,11 +461,11 @@ const WorkVendorManagement = () => {
               <th className="px-4 py-3 text-center font-semibold text-gray-700">Actions (Assign Vendor)</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-700">Scheme</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-700">Work Name</th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">Work Sanctioned Date</th>
+              {/* <th className="px-4 py-3 text-left font-semibold text-gray-700">Work Sanctioned Date</th> */}
               <th className="px-4 py-3 text-left font-semibold text-gray-700">Fin. Year</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-700">Admin Approved AMT</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-700">Portion Amt</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-700">Tax/Deduction</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-700">AA Amount</th>
+              {/* <th className="px-4 py-3 text-right font-semibold text-gray-700">Portion Amt</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-700">Tax/Deduction</th> */}
               <th className="px-4 py-3 text-right font-semibold text-gray-700">Gross Total</th>
               {/* <th className="px-4 py-3 text-right font-semibold text-gray-700">Work Limit</th> */}
               {/* <th className="px-4 py-3 text-right font-semibold text-gray-700">Balance Amt</th> */}
@@ -491,17 +491,17 @@ const WorkVendorManagement = () => {
                 </td>
                 <td className="px-4 py-2">{SCHEMES.find(s => s.id === w.schemeId)?.name ?? '-'}</td>
                 <td className="px-4 py-2">{w.name}</td>
-                <td className="px-4 py-2">{w.sanctionedDate}</td>
+                {/* <td className="px-4 py-2">{w.sanctionedDate}</td> */}
                 <td className="px-4 py-2">{w.financialYear}</td>
                 <td className="px-4 py-2 text-right">₹{(w.adminApprovedAmount ?? 0).toLocaleString()}</td>
-                <td className="px-4 py-2 text-right">₹{(w.workPortionAmount ?? 0).toLocaleString()}</td>
+                {/* <td className="px-4 py-2 text-right">₹{(w.workPortionAmount ?? 0).toLocaleString()}</td>
                 <td className="px-4 py-2 text-right">
                   {w.assignedTax?.length
                     ? w.assignedTax.map((tax) => (
                       <span key={tax.name} className="inline-block bg-blue-100 text-blue-700 px-2 py-0.5 rounded mr-1">{tax.name}</span>
                     ))
                     : '-'}
-                </td>
+                </td> */}
                 <td className="px-4 py-2 text-right">₹{(w.grossTotal ?? 0).toLocaleString()}</td>
                 {/* <td className="px-4 py-2 text-right">₹{(w.workLimit ?? 0).toLocaleString()}</td> */}
                 {/* <td className="px-4 py-2 text-right font-semibold text-primary">

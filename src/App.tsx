@@ -86,7 +86,7 @@ const getRoleBasedRoutes = (user: any) => {
     case 'DISTRICT_ADMIN':
       return [
         <Route key="dashboard" path="/district-dashboard" element={<PrivateRoute><DistrictDashboard /></PrivateRoute>} />,
-                <Route key="view-demands" path="/view-demands" element={<PrivateRoute><FundApproval /></PrivateRoute>} />,
+        <Route key="view-demands" path="/view-demands" element={<PrivateRoute><FundApproval /></PrivateRoute>} />,
         <Route key="ia-master" path="/ia-master" element={<PrivateRoute><IaMaster /></PrivateRoute>} />,
         <Route key="scheme-master" path="/scheme-master" element={<PrivateRoute><SchemeMaster /></PrivateRoute>} />,
         <Route key="work-master" path="/work-master" element={<PrivateRoute><WorkMaster /></PrivateRoute>} />,

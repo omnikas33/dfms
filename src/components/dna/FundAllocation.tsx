@@ -102,14 +102,14 @@ function AssignLimitModal({ open, onClose, onAssign, schemes, districtBalance, a
 const SanctionFundsToSchemes = () => {
   const [districtBalance, setDistrictBalance] = useState(DISTRICT_BALANCE_INITIAL);
   const [schemes, setSchemes] = useState([
-    { id: "2851", name: "Village and Small Industries", sanctioned: 2500000, balance: 2500000 },
+    { id: "2851", name: "Village and Small Industries", sanctioned: 250000, balance: 2500000 },
     { id: "28511821", name: "Small Scale Industries (Schemes for Providing Stipends to Entrepreneurs)", sanctioned: 1800000, balance: 1800000 },
     { id: "28511868", name: "Development of Sericulture Industry", sanctioned: 1200000, balance: 1200000 },
     { id: "3054", name: "Roads and Bridges", sanctioned: 3000000, balance: 3000000 },
-    { id: "30543317", name: "District and Other Roads", sanctioned: 2250000, balance: 2250000 },
+    { id: "30543317", name: "District and Other Roads", sanctioned: 225000, balance: 2250000 },
     { id: "30543611", name: "Grants for Strengthening and Development of Village Roads", sanctioned: 1600000, balance: 1600000 },
-    { id: "3451", name: "Secretariat-Economic Services", sanctioned: 2000000, balance: 2000000 },
-    { id: "34511795", name: "Innovative Scheme (Planning Board)", sanctioned: 1750000, balance: 1750000 }
+    { id: "3451", name: "Secretariat-Economic Services", sanctioned: 200000, balance: 200000 },
+    { id: "34511795", name: "Innovative Scheme (Planning Board)", sanctioned: 175000, balance: 1750000 }
   ]);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -127,21 +127,21 @@ const SanctionFundsToSchemes = () => {
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <Card className="rounded-xl shadow-md border border-primary/20">
           <CardContent className="p-4 flex flex-col items-center">
-            <span className="text-xs text-gray-600 font-medium mb-1">District Available Balance</span>
+            <span className="text-xs text-gray-600 font-medium mb-1">Total Annual Budget Sanctioned</span>
             <span className="font-bold text-2xl text-primary">₹{districtBalance.toLocaleString()}</span>
             <span className="text-xs text-gray-400">{FY}</span>
           </CardContent>
         </Card>
         <Card className="rounded-xl shadow-md border border-green-400/20">
           <CardContent className="p-4 flex flex-col items-center">
-            <span className="text-xs text-gray-600 font-medium mb-1">Utilized (Sanctioned) Amount</span>
+            <span className="text-xs text-gray-600 font-medium mb-1">Budget Amount Utilize</span>
             <span className="font-bold text-2xl text-green-700">₹{utilizedAmount.toLocaleString()}</span>
             <span className="text-xs text-gray-400">{FY}</span>
           </CardContent>
         </Card>
         <Card className="rounded-xl shadow-md border border-blue-400/20">
           <CardContent className="p-4 flex flex-col items-center">
-            <span className="text-xs text-gray-600 font-medium mb-1">Total Schemes Sanctioned</span>
+            <span className="text-xs text-gray-600 font-medium mb-1">Budget Mapped To Schemes</span>
             <span className="font-bold text-2xl text-blue-700">{schemes.length}</span>
             <span className="text-xs text-gray-400">{FY}</span>
           </CardContent>
