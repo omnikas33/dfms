@@ -7,7 +7,7 @@ const DUMMY_USERS = [
     username: "stateadmin",
     password: "123",
     role: "STATE_ADMIN",
-    name: "Admin Accounts Officer ",
+    name: "State Admin ",
     department: "Planning & Finance",
     district: "",
     state_id: 1,

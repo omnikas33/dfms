@@ -128,9 +128,10 @@ const dummyDemands = [
   },
   {
     id: 'DM-2025-06',
-    workId: 8,
+    workId: 6,
     workName: 'इंजमा ५२ चबळी माजगाव येथील रस्ता',
     vendor: 'OM Nikas',
+    financialYear: '2024-25',
     amount: 250000,
     netPayable: 240000,
     taxes: [
@@ -143,7 +144,7 @@ const dummyDemands = [
   },
   {
     id: 'DM-2025-07',
-    workId: 9,
+    workId: 8,
     workName: 'कवळे कडव ती रस्ता (मागणी क्र. १९२)',
     vendor: 'OM Nikas',
     amount: 100000,
@@ -359,7 +360,7 @@ const DistrictFundApproval = () => {
                   <table className="min-w-full text-sm">
                     <thead className="bg-gray-100">
                       <tr>
-                        {["Action", "Demand ID", "Scheme", "Work", "Fin. Year", "Vendor", "Amount", "Status", "Remarks"].map(h => (
+                        {["Demand ID", "Scheme", "Work", "Fin. Year", "Amount", "Status","Action"].map(h => (
                           <th key={h} className="p-2">{h}</th>
                         ))}
                       </tr>
@@ -369,7 +370,16 @@ const DistrictFundApproval = () => {
                         const work = works.find(w => w.id === d.workId);
                         return (
                           <tr key={d.id} className="hover:bg-blue-50 transition">
-                            <td className="p-2">
+                            <td className="p-2">{d.id}</td>
+                            <td className="p-2">{d.scheme}</td>
+                            <td className="p-2">{d.workName}</td>
+                            <td className="p-2">{work?.financialYear}</td>
+                            {/* <td className="p-2">{work?.vendorDetails?.name || work?.vendor || "-"}</td> */}
+                            <td className="p-2 text-right">₹{d.amount.toLocaleString()}</td>
+                            {/* <td className="p-2 text-right">₹{d.netPayable.toLocaleString()}</td> */}
+                            <td className="p-2">{getStatusBadge(d.status)}</td>
+                            {/* <td className="p-2">{d.remarks}</td> */}
+                                                        <td className="p-2">
                               <Button size="sm" onClick={() => {
                                 setSelectedDemand(d);
                                 setSelectedWork(work);
@@ -378,15 +388,7 @@ const DistrictFundApproval = () => {
                                 {tab === "pending" ? "Scrutiny" : "View"}
                               </Button>
                             </td>
-                            <td className="p-2">{d.id}</td>
-                            <td className="p-2">{d.scheme}</td>
-                            <td className="p-2">{d.workName}</td>
-                            <td className="p-2">{work?.financialYear}</td>
-                            <td className="p-2">{work?.vendorDetails?.name || work?.vendor || "-"}</td>
-                            <td className="p-2 text-right">₹{d.amount.toLocaleString()}</td>
-                            {/* <td className="p-2 text-right">₹{d.netPayable.toLocaleString()}</td> */}
-                            <td className="p-2">{getStatusBadge(d.status)}</td>
-                            <td className="p-2">{d.remarks}</td>
+
                           </tr>
                         );
                       })}

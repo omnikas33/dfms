@@ -1,253 +1,273 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Card,
-  CardContent,
   CardHeader,
-  CardTitle
+  CardTitle,
+  CardContent
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
 import {
   Select,
-  SelectContent,
-  SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
+  SelectContent,
+  SelectItem
 } from "@/components/ui/select";
-import { Download, Building, Users, Layers, FileText, ClipboardList, Clock, Hourglass, CheckCircle } from "lucide-react";
-import { Bar, Pie, Line } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  PointElement,
-  LineElement
-} from "chart.js";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  PointElement,
-  LineElement
-);
+interface DemandRecord {
+  districtCode: string;
+  districtName: string;
+  planType: "District Annual Plan" | "MLA/MLC" | "HADP";
+  financialYear: string;
+  demandCode: string;
+  schemeCode: string;
+  schemeName: string;
+  head: string;
+  demandAmount: number;
+  status: "Approved" | "Pending";
+  subtype?: string;
+  representative?: string;
+}
 
-const AdminDashboard = () => {
-  const summaryStats = {
-    districts: { total: 36, active: 30, inactive: 6 },
-    users: 150,
-    projects: 140,
-    schemes: 60000,
-    demands: { total: 1200, today: 108, pending: 45 },
-    funds: {
-      processed: 8300000000,
-      budget: 12500000000,
-      allocated: 7400000000,
-      utilizationPercent: 59.2
-    }
-  };
+const districtData: DemandRecord[] = [
+  { districtCode: "O-26", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-26 (Revenue)", schemeCode: "2053A233", schemeName: "Strengthening of Dynamic Government Administration and Emergency Management System", head: "31", demandAmount: 474001, status: "Approved" },
+  { districtCode: "O-26", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-26 (Revenue)", schemeCode: "2202J395", schemeName: "Assistance to Zilla Parishad for Special Repairs of School Buildings, Rooms and Latrine", head: "31", demandAmount: 250000, status: "Pending" },
+  { districtCode: "O-26", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-26 (Revenue)", schemeCode: "2202J733", schemeName: "Creating infrastructure for primary/ secondary schools in Zilla Parishad area", head: "31", demandAmount: 250000, status: "Approved" },
+  { districtCode: "O-26", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-26 (Revenue)", schemeCode: "2202K079", schemeName: "Assistance for Aadarsh Schools to construct basic facilities", head: "31", demandAmount: 250000, status: "Pending" },
+  { districtCode: "O-26", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-26 (Revenue)", schemeCode: "2202K426", schemeName: "Creation of Science labs, Computer labs, Digital schools, Internet/Wi-Fi facilities", head: "31", demandAmount: 250000, status: "Approved" },
+  { districtCode: "O-26", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-26 (Revenue)", schemeCode: "22031029", schemeName: "Development of facilities in Pre S.S.C. Vocational Education", head: "21", demandAmount: 599, status: "Pending" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "40550386", schemeName: "Provide infrastructural facilities to various establishments of Police and Prisons…", head: "51", demandAmount: 177433, status: "Approved" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "40550386", schemeName: "Provide infrastructural facilities to various establishments of Police and Prisons…", head: "52", demandAmount: 1, status: "Pending" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "40550386", schemeName: "Provide infrastructural facilities to various establishments of Police and Prisons…", head: "53", demandAmount: 136245, status: "Approved" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "40591436", schemeName: "Major Works", head: "53", demandAmount: 150000, status: "Pending" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "40592601", schemeName: "Construction of Protection Wall to Prevent Encroachment", head: "53", demandAmount: 50000, status: "Approved" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "42103336", schemeName: "Hospital repairs & maintenance", head: "53", demandAmount: 20000, status: "Pending" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "42160736", schemeName: "General Pool Accommodation Works", head: "53", demandAmount: 50000, status: "Approved" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "42350449", schemeName: "WCD Dept. Major Works", head: "51", demandAmount: 1, status: "Pending" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "42350449", schemeName: "WCD Dept. Major Works", head: "52", demandAmount: 1, status: "Approved" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "42350449", schemeName: "WCD Dept. Major Works", head: "53", demandAmount: 50000, status: "Pending" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "42501783", schemeName: "ITI Workshop Building", head: "53", demandAmount: 50000, status: "Approved" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "42501809", schemeName: "Govt Technical School", head: "53", demandAmount: 14000, status: "Pending" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "42502224", schemeName: "ITI Hostel & Training Facilities", head: "53", demandAmount: 6500, status: "Approved" },
+  { districtCode: "O-27", districtName: "Pune", planType: "District Annual Plan", financialYear: "2025-26", demandCode: "O-27 (Capital)", schemeCode: "44021765", schemeName: "Soil Conservation Measures", head: "53", demandAmount: 5000, status: "Pending" }
+];
 
-  const filters = {
-    fy: ["2022-23", "2023-24", "2024-25"],
-    scheme: ["PMGSY", "NABARD", "RRR"],
-    district: ["Mumbai", "Pune", "Nagpur"]
-  };
+export const mlaMock: DemandRecord[] = [
+  { districtCode: "MLA-01", districtName: "Pune", planType: "MLA/MLC", financialYear: "2025-26", demandCode: "11 MLA", schemeCode: "90923", schemeName: "MLA Development Scheme", head: "1234", demandAmount: 10000000, status: "Approved", subtype: "MLA", representative: "Shri Mahesh Landge" },
+  { districtCode: "MLA-02", districtName: "Pune", planType: "MLA/MLC", financialYear: "2025-26", demandCode: "11 MLA", schemeCode: "90923", schemeName: "MLA Development Scheme", head: "323", demandAmount: 20000000, status: "Pending", subtype: "MLA", representative: "Shri Madhuri Misal" }
+];
 
-  const chartBarData = {
-    labels: ["Mumbai", "Pune", "Nagpur"],
-    datasets: [
-      {
-        label: "Allocated",
-        data: [3000000000, 2500000000, 1900000000],
-        backgroundColor: "#36A2EB"
-      },
-      {
-        label: "Total Budget",
-        data: [3500000000, 3000000000, 2800000000],
-        backgroundColor: "#FFCE56"
+export const mlcMock: DemandRecord[] = [
+  { districtCode: "MLC-01", districtName: "Pune", planType: "MLA/MLC", financialYear: "2025-26", demandCode: "90923 MLC", schemeCode: "90923", schemeName: "MLC Development Scheme", head: "—", demandAmount: 30000000, status: "Approved", subtype: "MLC - Nodal", representative: "Shri Vinod Patil" },
+  { districtCode: "MLC-02", districtName: "Pune", planType: "MLA/MLC", financialYear: "2025-26", demandCode: "90923 MLC", schemeCode: "90923", schemeName: "MLC Development Scheme", head: "—", demandAmount: 15000000, status: "Pending", subtype: "MLC - Non-Nodal", representative: "Smt. Sneha Jadhav" }
+];
+
+export const hadpMock: DemandRecord[] = [
+  { districtCode: "HADP-01", districtName: "Pune", planType: "HADP", financialYear: "2025-26", demandCode: "HADP-01", schemeCode: "HADP01", schemeName: "HADP Special Scheme", head: "—", demandAmount: 15000000, status: "Approved" }
+];
+
+const AdminDashboard: React.FC = () => {
+  const [fy, setFy] = useState<string>("All");
+  const [planType, setPlanType] = useState<DemandRecord["planType"]>("District Annual Plan");
+  const [demandCode, setDemandCode] = useState<string>("All");
+  const [status, setStatus] = useState<string>("All");
+  const [subtype, setSubtype] = useState<string>("All");
+  const [rep, setRep] = useState<string>("All");
+
+  const allData = useMemo(() => [...districtData, ...mlaMock, ...mlcMock, ...hadpMock], []);
+
+  const filtered = useMemo(() => {
+    return allData.filter(d => {
+      if (fy !== "All" && d.financialYear !== fy) return false;
+      if (d.planType !== planType) return false;
+      if (planType === "District Annual Plan") {
+        if (demandCode !== "All" && d.demandCode !== demandCode) return false;
+        if (status !== "All" && d.status !== status) return false;
       }
-    ]
-  };
-
-  const pieData = {
-    labels: ["Infrastructure", "Education", "Healthcare", "Agriculture"],
-    datasets: [
-      {
-        label: "Funds by Sector",
-        data: [3400000000, 1800000000, 1500000000, 700000000],
-        backgroundColor: ["#4BC0C0", "#FF6384", "#9966FF", "#FF9F40"]
+      if (planType === "MLA/MLC") {
+        if (subtype !== "All" && d.subtype !== subtype) return false;
+        if (rep !== "All" && d.representative !== rep) return false;
       }
-    ]
-  };
-
-  const lineData = {
-    labels: ["Q1", "Q2", "Q3", "Q4"],
-    datasets: [
-      {
-        label: "Fund Disbursed Over Quarters",
-        data: [1800000000, 2000000000, 2200000000, 2300000000],
-        fill: false,
-        borderColor: "#36A2EB"
-      }
-    ]
-  };
-
-  const handleExport = () => {
-    const ws = XLSX.utils.json_to_sheet([summaryStats]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Summary");
-    XLSX.writeFile(wb, "AdminDashboardSummary.xlsx");
-  };
-
-  const handlePdfExport = () => {
-    const doc = new jsPDF();
-    doc.autoTable({
-      head: [["Category", "Value"]],
-      body: [
-        ["Total Districts", summaryStats.districts.total],
-        ["Active Districts", summaryStats.districts.active],
-        ["Inactive Districts", summaryStats.districts.inactive],
-        ["Users", summaryStats.users],
-        ["Projects", summaryStats.projects],
-        ["Schemes", summaryStats.schemes],
-        ["Total Demands", summaryStats.demands.total],
-        ["Today's Demands", summaryStats.demands.today],
-        ["Pending Demands", summaryStats.demands.pending],
-        ["Fund Processed", `₹${(summaryStats.funds.processed / 1e7).toFixed(2)} Cr`],
-        ["Budget", `₹${(summaryStats.funds.budget / 1e7).toFixed(2)} Cr`],
-        ["Allocated", `₹${(summaryStats.funds.allocated / 1e7).toFixed(2)} Cr`],
-        ["Utilization", `${summaryStats.funds.utilizationPercent}%`]
-      ]
+      return true;
     });
-    doc.save("AdminDashboardSummary.pdf");
-  };
+  }, [allData, fy, planType, demandCode, status, subtype, rep]);
 
-  const cardData = [
-    {
-      title: " Active Districts",
-      value: summaryStats.districts.total,
-      icon: <Building className="w-6 h-6 text-white" />,
-      href: "/district-master",
-      bg: "from-blue-500 to-blue-700"
-    },
-    {
-      title: "No of Implementing Agencies",
-      value: summaryStats.users,
-      icon: <Users className="w-6 h-6 text-white" />,
-      href: "/user-master",
-      bg: "from-indigo-500 to-indigo-700"
-    },
-    {
-      title: "Total Schemes",
-      value: summaryStats.projects,
-      icon: <Layers className="w-6 h-6 text-white" />,
-      href: "/projects",
-      bg: "from-green-500 to-green-700"
-    },
-    {
-      title: "Total Works",
-      value: summaryStats.schemes,
-      icon: <FileText className="w-6 h-6 text-white" />,
-      href: "/scheme-master",
-      bg: "from-teal-500 to-teal-700"
-    },
-    {
-      title: "Work Demands",
-      value: summaryStats.demands.total,
-      icon: <ClipboardList className="w-6 h-6 text-white" />,
-      href: "/fund-demand",
-      bg: "from-orange-500 to-orange-700"
-    },
-    {
-      title: "Today's Demands",
-      value: summaryStats.demands.today,
-      icon: <Clock className="w-6 h-6 text-white" />,
-      href: "/fund-demand",
-      bg: "from-yellow-500 to-yellow-700"
-    },
-    {
-      title: "Pending Demands",
-      value: summaryStats.demands.pending,
-      icon: <Hourglass className="w-6 h-6 text-white" />,
-      href: "/fund-demand",
-      bg: "from-red-500 to-red-700"
-    },
-    {
-      title: "Funds Processed",
-      value: `₹${(summaryStats.funds.processed / 1e7).toFixed(2)} Cr`,
-      icon: <CheckCircle className="w-6 h-6 text-white" />,
-      href: "/fund-allocation",
-      bg: "from-purple-500 to-purple-700"
-    }
-  ];
+  interface Sum { budget: number; approved: number; pending: number }
+  const map: Record<string, Sum> = {};
+  filtered.forEach(d => {
+    const key = [d.demandCode, d.districtName, d.schemeCode, d.head, d.schemeName].join("|");
+    const s = map[key] ||= { budget: 0, approved: 0, pending: 0 };
+    s.budget += d.demandAmount;
+    if (d.status === "Approved") s.approved += d.demandAmount;
+    else s.pending += d.demandAmount;
+  });
+
+  const rows = Object.entries(map).map(([key, s]) => {
+    const [code, district, schemeCode, head, schemeName] = key.split("|");
+    return { demandCode: code, district, schemeKey: `${schemeCode} - ${head} - ${schemeName}`, ...s, balance: s.budget - s.approved };
+  });
+
+  const totalBudget   = rows.reduce((sum, r) => sum + r.budget,    0);
+  const totalApproved = rows.reduce((sum, r) => sum + r.approved,  0);
+  const totalPending  = rows.reduce((sum, r) => sum + r.pending,   0);
+  const totalBalance  = rows.reduce((sum, r) => sum + r.balance,   0);
+
+  const openDetails = (code: string) => window.open(`/demands/${code}`, "_blank");
 
   return (
     <div className="p-6 space-y-6">
-      {/* Filter Dropdowns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {Object.entries(filters).map(([key, options]) => (
-          <Select key={key}>
-            <SelectTrigger><SelectValue placeholder={`Select ${key}`} /></SelectTrigger>
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4">
+        <div className="flex-1 min-w-[140px]">
+          <Label htmlFor="fy-select">Financial Year</Label>
+          <Select id="fy-select" value={fy} onValueChange={setFy}>
+            <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
             <SelectContent>
-              {options.map(val => (
-                <SelectItem key={val} value={val}>{val}</SelectItem>
+              {["All", ...new Set(allData.map(d => d.financialYear))].map(y => (
+                <SelectItem key={y} value={y}>{y}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-        ))}
+        </div>
+
+        <div className="flex-1 min-w-[180px]">
+          <Label htmlFor="planType-select">Plan Type</Label>
+          <Select id="planType-select" value={planType} onValueChange={setPlanType}>
+            <SelectTrigger><SelectValue placeholder="Select plan" /></SelectTrigger>
+            <SelectContent>
+              {["District Annual Plan", "MLA/MLC", "HADP"].map(pt => (
+                <SelectItem key={pt} value={pt}>{pt}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {planType === "District Annual Plan" && (
+          <>
+            <div className="flex-1 min-w-[160px]">
+              <Label htmlFor="demandCode-select">Demand Code</Label>
+              <Select id="demandCode-select" value={demandCode} onValueChange={setDemandCode}>
+                <SelectTrigger><SelectValue placeholder="Select code" /></SelectTrigger>
+                <SelectContent>
+                  {["All", ...new Set(districtData.map(d => d.demandCode))].map(dc => (
+                    <SelectItem key={dc} value={dc}>{dc}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 min-w-[120px]">
+              <Label htmlFor="status-select">Status</Label>
+              <Select id="status-select" value={status} onValueChange={setStatus}>
+                <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                <SelectContent>
+                  {["All", "Approved", "Pending"].map(s => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
+
+        {planType === "MLA/MLC" && (
+          <>
+            <div className="flex-1 min-w-[160px]">
+              <Label htmlFor="subtype-select">MLA/MLC Type</Label>
+              <Select id="subtype-select" value={subtype} onValueChange={setSubtype}>
+                <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                <SelectContent>
+                  {["All", "MLA", "MLC - Nodal", "MLC - Non-Nodal"].map(st => (
+                    <SelectItem key={st} value={st}>{st}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 min-w-[160px]">
+              <Label htmlFor="rep-select">Representative</Label>
+              <Select id="rep-select" value={rep} onValueChange={setRep}>
+                <SelectTrigger><SelectValue placeholder="Select name" /></SelectTrigger>
+                <SelectContent>
+                  {["All", ...new Set([...mlaMock, ...mlcMock].map(d => d.representative!))].map(n => (
+                    <SelectItem key={n} value={n}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Stylish Cards */}
+      {/* Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        {cardData.map((card, index) => (
-          <Card
-            key={index}
-            onClick={() => window.location.href = card.href}
-            className={`cursor-pointer bg-gradient-to-tr ${card.bg} text-white shadow-md hover:shadow-xl hover:scale-105 transition-all rounded-2xl`}
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-semibold">{card.title}</CardTitle>
-              <div className="p-2 bg-white bg-opacity-20 rounded-full">{card.icon}</div>
-            </CardHeader>
-            <CardContent className="text-2xl font-bold pt-1">
-              {card.value}
-              <div className="text-sm underline mt-1">View More</div>
-            </CardContent>
-          </Card>
-        ))}
+        <Card>
+          <CardHeader><CardTitle>Total Budget</CardTitle></CardHeader>
+          <CardContent className="text-2xl font-bold">₹{totalBudget.toLocaleString()}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Approved Demands</CardTitle></CardHeader>
+          <CardContent className="text-2xl font-bold">₹{totalApproved.toLocaleString()}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Pending Demands</CardTitle></CardHeader>
+          <CardContent className="text-2xl font-bold">₹{totalPending.toLocaleString()}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Balance</CardTitle></CardHeader>
+          <CardContent className="text-2xl font-bold">₹{totalBalance.toLocaleString()}</CardContent>
+        </Card>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-        <Card><CardHeader><CardTitle>District-wise Allocation</CardTitle></CardHeader><CardContent><Bar data={chartBarData} /></CardContent></Card>
-        <Card><CardHeader><CardTitle>Sector-wise Fund Distribution</CardTitle></CardHeader><CardContent><Pie data={pieData} /></CardContent></Card>
-        <Card><CardHeader><CardTitle>Quarterly Fund Disbursal</CardTitle></CardHeader><CardContent><Line data={lineData} /></CardContent></Card>
-      </div>
-
-      {/* Export Buttons */}
-      <div className="flex gap-4 justify-end">
-        <Button onClick={handleExport}><Download className="mr-1 h-4 w-4" />Export Excel</Button>
-        <Button onClick={handlePdfExport}><Download className="mr-1 h-4 w-4" />Export PDF</Button>
-      </div>
+      {/* Table */}
+      <Card>
+        <CardHeader><CardTitle>Scheme-wise Summary</CardTitle></CardHeader>
+        <CardContent className="overflow-x-auto">
+          {rows.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Demand Code</TableHead>
+                  <TableHead>District</TableHead>
+                  <TableHead>Scheme (Code-Head-Name)</TableHead>
+                  <TableHead className="text-right">Total Budget</TableHead>
+                  <TableHead className="text-right">Approved</TableHead>
+                  <TableHead className="text-right">Pending</TableHead>
+                  <TableHead className="text-right">Balance</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((r, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Button variant="link" onClick={() => openDetails(r.demandCode)}>
+                        {r.demandCode}
+                      </Button>
+                    </TableCell>
+                    <TableCell>{r.district}</TableCell>
+                    <TableCell>{r.schemeKey}</TableCell>
+                    <TableCell className="text-right">₹{r.budget.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">₹{r.approved.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">₹{r.pending.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">₹{r.balance.toLocaleString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-4 text-center text-gray-500">
+              No data for the selected filters.
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
